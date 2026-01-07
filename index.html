@@ -48,6 +48,36 @@
       margin-bottom: 14px;
     }
 
+    /* ✅ NAV (eklendi) */
+    .navRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      margin: 0 0 12px 0;
+    }
+    .navLink{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      color:#111;
+      text-decoration:none;
+      font-size: .95rem;
+      line-height: 1;
+      user-select:none;
+      transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .navLink:hover{ background: var(--hover); }
+    .navLink.on{
+      border-color:#2b7cff;
+      background: rgba(43,124,255,.10);
+      box-shadow: 0 0 0 3px rgba(43,124,255,.16) inset;
+    }
+
     .topbar{
       display:flex;
       gap:12px;
@@ -371,6 +401,13 @@
 
 <body>
   <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
+
+  <!-- ✅ NAV (eklendi) -->
+  <nav class="navRow" aria-label="Sayfalar">
+    <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
+    <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2022–23</a>
+    <a class="navLink on" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
+  </nav>
 
   <div class="topbar">
     <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
