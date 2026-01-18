@@ -188,6 +188,12 @@
       min-width: 0;
     }
 
+    /* ✅ Hastalık adı (Dr/dr öncesi) — turuncu (koyu değil) */
+    .diseaseName{
+      color: #ef6c00;
+      font-weight: 650;
+    }
+
     .dur{
       text-align:right;
       color: var(--muted);
@@ -632,6 +638,29 @@
       return s;
     }
 
+    function escHtml(s){
+      return (s ?? "").toString()
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+
+    // Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
+    function highlightDisease(t){
+      const raw = (t ?? "").toString();
+      const m = raw.match(/\bdr\b/i);
+      if (!m || m.index == null) return escHtml(raw);
+
+      const i = m.index;
+      const left = raw.slice(0, i).trimEnd();
+      if (!left.trim()) return escHtml(raw);
+
+      const rest = raw.slice(left.length);
+      return `<span class="diseaseName">${escHtml(left)}</span>${escHtml(rest)}`;
+    }
+
     function guessMime(url){
       try{
         const p = new URL(url).pathname.toLowerCase();
@@ -1011,7 +1040,7 @@
 
         const title = document.createElement("div");
         title.className = "title";
-        title.textContent = it.title;
+        title.innerHTML = highlightDisease(it.title);
 
         const dur = document.createElement("div");
         dur.className = "dur";
@@ -1141,6 +1170,8 @@
     function playPrev(){
       const visible = getVisibleItems();
       if (!visible.length) return;
+      let idx = visible.findIndex(x => x.id === activeId);
+      if (idx === -1) idx = 0
       let idx = visible.findIndex(x => x.id === activeId);
       if (idx === -1) idx = 0;
       idx = (idx - 1 + visible.length) % visible.length;
