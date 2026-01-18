@@ -48,7 +48,7 @@
       margin-bottom: 14px;
     }
 
-    /* ✅ NAV (eklendi) */
+    /* ✅ NAV */
     .navRow{
       display:flex;
       gap:10px;
@@ -114,7 +114,7 @@
       line-height: 1.05;
     }
 
-    /* ✅ Grid: Kayıt | Süre | ⭐ | ✓ | ⬇︎ (header'da son hücre boş) */
+    /* ✅ Grid: Kayıt | Süre | ⭐ | ✓ | ⬇︎ */
     .headerRow, .itemRow{
       display: grid;
       grid-template-columns: minmax(0, 1fr) 8ch 36px 36px 36px;
@@ -186,12 +186,6 @@
       font-weight: 500;
       line-height: 1.02;
       min-width: 0;
-    }
-
-    /* ✅ Hastalık adı (Dr/dr öncesi) — turuncu (koyu değil) */
-    .diseaseName{
-      color: #ef6c00;
-      font-weight: 650;
     }
 
     .dur{
@@ -402,13 +396,18 @@
         justify-content: flex-end;
       }
     }
+
+    /* ✅ Hastalık adı (Dr/dr öncesi) */
+    .diseaseName{
+      color: #c2410c; /* koyu turuncu */
+      font-weight: 650;
+    }
   </style>
 </head>
 
 <body>
   <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
 
-  <!-- ✅ NAV (eklendi) -->
   <nav class="navRow" aria-label="Sayfalar">
     <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
     <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2022–23</a>
@@ -629,15 +628,6 @@
     // =========================
     // HELPERS
     // =========================
-    function foldTR(s){
-      s = (s || "").toString();
-      s = s.toLocaleLowerCase("tr");
-      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      s = s.replace(/ı/g, "i");
-      s = s.replace(/\s+/g, " ").trim();
-      return s;
-    }
-
     function escHtml(s){
       return (s ?? "").toString()
         .replace(/&/g,"&amp;")
@@ -647,9 +637,10 @@
         .replace(/'/g,"&#39;");
     }
 
-    // Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
-    function highlightDisease(t){
-      const raw = (t ?? "").toString();
+    // ✅ Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
+    function highlightDisease(title){
+      const raw = (title ?? "").toString();
+
       const m = raw.match(/\bdr\b/i);
       if (!m || m.index == null) return escHtml(raw);
 
@@ -657,8 +648,17 @@
       const left = raw.slice(0, i).trimEnd();
       if (!left.trim()) return escHtml(raw);
 
-      const rest = raw.slice(left.length);
-      return `<span class="diseaseName">${escHtml(left)}</span>${escHtml(rest)}`;
+      // ✅ daha sağlam: Dr'nin başladığı yerden devam et
+      return `<span class="diseaseName">${escHtml(left)}</span>${escHtml(raw.slice(i))}`;
+    }
+
+    function foldTR(s){
+      s = (s || "").toString();
+      s = s.toLocaleLowerCase("tr");
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      s = s.replace(/ı/g, "i");
+      s = s.replace(/\s+/g, " ").trim();
+      return s;
     }
 
     function guessMime(url){
@@ -897,13 +897,7 @@
           const url = buildDownloadUrl(IA_IDENTIFIER_1, name);
           const localId = name || url || (title + "#" + idx);
           const id = "S1|" + localId;
-          return {
-            id,
-            title,
-            name,
-            url,
-            src: "S1"
-          };
+          return { id, title, name, url, src: "S1" };
         });
 
       return audio;
@@ -933,13 +927,7 @@
 
           const url = new URL(file, BASE_2).toString();
           const id = "S2|" + (file || title || String(idx));
-          return {
-            id,
-            title,
-            file,
-            url,
-            src: "S2"
-          };
+          return { id, title, file, url, src: "S2" };
         });
 
       return audio;
@@ -1040,6 +1028,7 @@
 
         const title = document.createElement("div");
         title.className = "title";
+        // ✅ Hastalık adını turuncu yap (Dr/dr öncesi)
         title.innerHTML = highlightDisease(it.title);
 
         const dur = document.createElement("div");
@@ -1170,8 +1159,6 @@
     function playPrev(){
       const visible = getVisibleItems();
       if (!visible.length) return;
-      let idx = visible.findIndex(x => x.id === activeId);
-      if (idx === -1) idx = 0
       let idx = visible.findIndex(x => x.id === activeId);
       if (idx === -1) idx = 0;
       idx = (idx - 1 + visible.length) % visible.length;
