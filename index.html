@@ -638,19 +638,24 @@
     }
 
     // ✅ Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
-    function highlightDisease(title){
-      const raw = (title ?? "").toString();
+   const raw = (title ?? "").toString();
 
-      const m = raw.match(/\bdr\b/i);
-      if (!m || m.index == null) return escHtml(raw);
+  const m = raw.match(/\bdr\b/i);
+  if (!m || m.index == null) return escHtml(raw);
 
-      const i = m.index;
-      const left = raw.slice(0, i).trimEnd();
-      if (!left.trim()) return escHtml(raw);
+  const i = m.index;
 
-      // ✅ daha sağlam: Dr'nin başladığı yerden devam et
-      return `<span class="diseaseName">${escHtml(left)}</span>${escHtml(raw.slice(i))}`;
-    }
+  // ✅ Boşluğu KORU: raw.slice(0, i) aynen kalsın
+  const leftRaw = raw.slice(0, i);
+  const leftTrim = leftRaw.trimEnd();
+  if (!leftTrim.trim()) return escHtml(raw);
+
+  // leftTrim'i boyamak yerine leftRaw'ı boyarsak boşluk da turuncu olur.
+  // İstersen sadece metin turuncu kalsın diye: leftTrim'i boya, boşluğu normal bırak.
+  const trailing = leftRaw.slice(leftTrim.length); // burada genelde " " olur
+
+  return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
+}
 
     function foldTR(s){
       s = (s || "").toString();
