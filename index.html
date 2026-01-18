@@ -638,24 +638,23 @@
     }
 
     // ✅ Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
-   const raw = (title ?? "").toString();
+    // ✅ Boşluğu KORUR (hastalık adından sonra boşluk silinmez)
+    function highlightDisease(title){
+      const raw = (title ?? "").toString();
 
-  const m = raw.match(/\bdr\b/i);
-  if (!m || m.index == null) return escHtml(raw);
+      const m = raw.match(/\bdr\b/i);
+      if (!m || m.index == null) return escHtml(raw);
 
-  const i = m.index;
+      const i = m.index;
 
-  // ✅ Boşluğu KORU: raw.slice(0, i) aynen kalsın
-  const leftRaw = raw.slice(0, i);
-  const leftTrim = leftRaw.trimEnd();
-  if (!leftTrim.trim()) return escHtml(raw);
+      const leftRaw = raw.slice(0, i);       // Dr öncesi (boşluk dahil)
+      const leftTrim = leftRaw.trimEnd();    // sadece kontrol/renk için
+      if (!leftTrim.trim()) return escHtml(raw);
 
-  // leftTrim'i boyamak yerine leftRaw'ı boyarsak boşluk da turuncu olur.
-  // İstersen sadece metin turuncu kalsın diye: leftTrim'i boya, boşluğu normal bırak.
-  const trailing = leftRaw.slice(leftTrim.length); // burada genelde " " olur
+      const trailing = leftRaw.slice(leftTrim.length); // " " gibi kalan boşluk(lar)
 
-  return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
-}
+      return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
+    }
 
     function foldTR(s){
       s = (s || "").toString();
@@ -1033,7 +1032,7 @@
 
         const title = document.createElement("div");
         title.className = "title";
-        // ✅ Hastalık adını turuncu yap (Dr/dr öncesi)
+        // ✅ Hastalık adını turuncu yap (Dr/dr öncesi) + boşluğu koru
         title.innerHTML = highlightDisease(it.title);
 
         const dur = document.createElement("div");
