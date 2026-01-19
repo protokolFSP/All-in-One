@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FSP Audio — Birleşik Liste</title>
+  <title>FSP Audio — Güncel</title>
 
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
@@ -13,11 +13,15 @@
       --muted:#6b6b6b;
       --bg:#ffffff;
       --hover:#f7f7f7;
-      --active:#e8f3ff;
+
+      --active:#cfe9ff;
+      --activeGlow: 0 0 0 2px rgba(43,124,255,.34) inset, 0 12px 26px rgba(43,124,255,.14);
+
       --shadow: 0 12px 30px rgba(0,0,0,.12);
 
       --blue:#2b7cff;
       --blueGlow: 0 0 0 4px rgba(43,124,255,.24), 0 10px 22px rgba(43,124,255,.10);
+
       --green:#16a34a;
       --greenGlow: 0 0 0 4px rgba(22,163,74,.22), 0 10px 22px rgba(22,163,74,.10);
     }
@@ -31,11 +35,9 @@
       line-height: 1.10;
     }
 
-    h1{
-      font-size: 1.55rem;
-      margin: 0 0 12px 0;
-      font-weight: 650;
-      letter-spacing: .2px;
+    #appScale{
+      transform-origin: top left;
+      will-change: transform;
     }
 
     .pageTitle{
@@ -48,7 +50,7 @@
       margin-bottom: 14px;
     }
 
-    /* ✅ NAV */
+    /* NAV */
     .navRow{
       display:flex;
       gap:10px;
@@ -73,7 +75,7 @@
     }
     .navLink:hover{ background: var(--hover); }
     .navLink.on{
-      border-color:#2b7cff;
+      border-color:var(--blue);
       background: rgba(43,124,255,.10);
       box-shadow: 0 0 0 3px rgba(43,124,255,.16) inset;
     }
@@ -107,6 +109,72 @@
     }
     #resetBtn:hover{ background: var(--hover); }
 
+    /* ✅ Zoom - SVG ikon (daha aralıklı + Hepsi'den uzak + canlı) */
+    .zoomWrap{
+      display:flex;
+      align-items:center;
+      gap: 24px;
+      margin-left: 14px;
+      padding: 6px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      background: white;
+      user-select:none;
+      flex: 0 0 auto;
+    }
+    .zoomBtn{
+      height: 36px;
+      width: 48px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor: pointer;
+      line-height: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease, filter .15s ease;
+    }
+    .zoomBtn:hover{ background: var(--hover); }
+    .zoomBtn:disabled{ opacity: .35; cursor: default; }
+
+    .zoomBtn svg{
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .95;
+    }
+
+    .zoomBtn.zoomOut,
+    .zoomBtn.zoomIn{
+      opacity: .55;
+      filter: saturate(1.2);
+      color: #111;
+    }
+
+    .zoomBtn.enabled.zoomOut{
+      opacity: 1;
+      background: rgba(255, 149, 0, .18);
+      border-color: rgba(255, 149, 0, .70);
+      box-shadow: 0 0 0 3px rgba(255, 149, 0, .16) inset, 0 8px 18px rgba(255, 149, 0, .12);
+      filter: saturate(1.7);
+      color: #b45309;
+    }
+    .zoomBtn.enabled.zoomIn{
+      opacity: 1;
+      background: rgba(34, 197, 94, .18);
+      border-color: rgba(34, 197, 94, .70);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .16) inset, 0 8px 18px rgba(34, 197, 94, .12);
+      filter: saturate(1.7);
+      color: #15803d;
+    }
+
     #meta{
       color: var(--muted);
       font-size: .95rem;
@@ -114,7 +182,7 @@
       line-height: 1.05;
     }
 
-    /* ✅ Grid: Kayıt | Süre | ⭐ | ✓ | ⬇︎ */
+    /* Grid: Kayıt | Süre | ⭐ | ✓ | ⬇︎ */
     .headerRow, .itemRow{
       display: grid;
       grid-template-columns: minmax(0, 1fr) 8ch 36px 36px 36px;
@@ -168,28 +236,35 @@
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
 
-    #list{
-      border-bottom: 1px solid var(--border);
-    }
+    #list{ border-bottom: 1px solid var(--border); }
 
+    /* Zebra */
     .itemRow{
-  padding: 4px 8px;
-  border-bottom: 1px solid #ececec;
-  cursor: pointer;
-  background: #f7f7f7;
-}
+      padding: 4px 8px;
+      border-bottom: 1px solid #ececec;
+      cursor: pointer;
+      background: #f7f7f7;
+    }
+    #list .itemRow:nth-child(even){ background: #eeeeee; }
+    .itemRow:hover{ background: var(--hover); }
 
-#list .itemRow:nth-child(even){
-  background: #eeeeee;
-}
-
-.itemRow:hover{
-  background: var(--hover);
-}
-
-.itemRow.active{
-  background: var(--active);
-}
+    /* Aktif satır */
+    .itemRow.active{
+      background: var(--active) !important;
+      box-shadow: var(--activeGlow);
+      position: relative;
+    }
+    .itemRow.active:hover{ background: var(--active) !important; }
+    .itemRow.active::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:4px;
+      background: var(--blue);
+      border-radius: 4px;
+    }
 
     .title{
       font-size: 1.02rem;
@@ -285,6 +360,16 @@
       z-index: 9999;
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
+      transform-origin: top left;
+      will-change: transform;
+      transition: opacity .18s ease;
+      touch-action: none;
+    }
+
+    /* ✅ Arama sırasında player görünmesin */
+    #floatingPlayer.hiddenWhileTyping{
+      opacity: 0;
+      pointer-events: none;
     }
 
     #fpHeader{
@@ -377,9 +462,7 @@
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
 
-    #fpBody{
-      padding: 10px 12px 12px 12px;
-    }
+    #fpBody{ padding: 10px 12px 12px 12px; }
 
     #status{
       margin: 8px 2px 0 2px;
@@ -390,9 +473,14 @@
 
     .plyr--audio .plyr__controls{
       border-radius: 12px;
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    .plyr--audio .plyr__controls .plyr__progress{
+      flex: 1 1 100%;
+      min-width: 0;
     }
 
-    /* ✅ Mobilde player başlığı daha uzun görünsün */
     @media (max-width: 680px){
       #fpHeader{ flex-wrap: wrap; gap: 8px; }
       #fpTitle{
@@ -407,75 +495,96 @@
       }
     }
 
-    /* ✅ Hastalık adı (Dr/dr öncesi) */
+    /* Dr/dr + Fr/fr öncesi */
     .diseaseName{
-      color: #c2410c; /* koyu turuncu */
+      color: #c2410c;
       font-weight: 650;
     }
   </style>
 </head>
 
 <body>
-  <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
+  <div id="appScale">
+    <h1 class="pageTitle">FSP Audio — Güncel</h1>
 
-  <nav class="navRow" aria-label="Sayfalar">
-    <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
-    <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2021–23</a>
-    <a class="navLink on" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
-  </nav>
+    <nav class="navRow" aria-label="Sayfalar">
+      <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
+      <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2021–23</a>
+      <a class="navLink" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
+    </nav>
 
-  <div class="topbar">
-    <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
-    <button id="resetBtn" type="button">Hepsi</button>
-  </div>
+    <div class="topbar">
+      <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
+      <button id="resetBtn" type="button">Hepsi</button>
 
-  <div id="meta">Görünən: 0 / Toplam: 0</div>
+      <div class="zoomWrap" aria-label="Görünüm">
+        <button id="zoomOutBtn" class="zoomBtn zoomOut" type="button" aria-label="Küçült">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="M20 20l-3.5-3.5"></path>
+            <path d="M8.5 11h5"></path>
+          </svg>
+        </button>
 
-  <!-- Header: Kayıt | Süre | ⭐ | ✓ | (boş) -->
-  <div class="headerRow">
-    <div class="colTitle">
-      <div class="titleHead">
-        <span>Kayıt</span>
-        <button id="sortDateBtn" class="sortBtn" type="button" title="Tarihe göre sırala (dosya sonu)">
-          <svg id="sortDateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14"/><path d="M7 14l5 5 5-5"/>
+        <button id="zoomInBtn" class="zoomBtn zoomIn" type="button" aria-label="Büyüt">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="M20 20l-3.5-3.5"></path>
+            <path d="M11 8.5v5"></path>
+            <path d="M8.5 11h5"></path>
           </svg>
         </button>
       </div>
     </div>
 
-    <div class="colDur" style="text-align:right;">
-      <div class="durHead">
-        <span>Süre</span>
-        <button id="sortDurBtn" class="sortBtn" type="button" title="Süreye göre sırala">
-          <svg id="sortDurIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14"/><path d="M7 14l5 5 5-5"/>
+    <div id="meta">Görünən: 0 / Toplam: 0</div>
+
+    <!-- Header: Kayıt | Süre | ⭐ | ✓ | (boş) -->
+    <div class="headerRow">
+      <div class="colTitle">
+        <div class="titleHead">
+          <span>Kayıt</span>
+          <button id="sortDateBtn" class="sortBtn" type="button" title="Tarihe göre sırala (dosya sonu)">
+            <svg id="sortDateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14"/><path d="M7 14l5 5 5-5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="colDur" style="text-align:right;">
+        <div class="durHead">
+          <span>Süre</span>
+          <button id="sortDurBtn" class="sortBtn" type="button" title="Süreye göre sırala">
+            <svg id="sortDurIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14"/><path d="M7 14l5 5 5-5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="headIconCell">
+        <button id="filterFav" class="filterBtn" title="Favoriler filtrele" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
           </svg>
         </button>
       </div>
+
+      <div class="headIconCell">
+        <button id="filterSel" class="filterBtn" title="Seçilenler filtrele" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="headIconCell" aria-hidden="true"></div>
     </div>
 
-    <div class="headIconCell">
-      <button id="filterFav" class="filterBtn" title="Favoriler filtrele" type="button" aria-pressed="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="headIconCell">
-      <button id="filterSel" class="filterBtn" title="Seçilenler filtrele" type="button" aria-pressed="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 6L9 17l-5-5"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="headIconCell" aria-hidden="true"></div>
+    <div id="list"></div>
+    <div id="status"></div>
   </div>
-
-  <div id="list"></div>
-  <div id="status"></div>
 
   <div id="floatingPlayer" role="region" aria-label="Oynatıcı">
     <div id="fpHeader" title="Sürükle">
@@ -508,14 +617,9 @@
 
   <script>
     // =========================
-    // KAYNAKLAR (1 + 2 birleştirme)
+    // GÜNCEL KAYNAK (IA metadata)
     // =========================
-    // 1) İlk sayfadaki IA metadata kaynağı:
     const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
-
-    // 2) İkinci sayfadaki arşiv:
-    const ARCHIVE_ID_2 = "FSP21_23";
-    const BASE_2 = `https://archive.org/download/${ARCHIVE_ID_2}/`;
 
     // Download Worker
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
@@ -527,6 +631,10 @@
     const searchEl = document.getElementById("search");
     const metaEl   = document.getElementById("meta");
     const statusEl = document.getElementById("status");
+
+    const appScaleEl = document.getElementById("appScale");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomInBtn  = document.getElementById("zoomInBtn");
 
     const fp = document.getElementById("floatingPlayer");
     const fpHeader = document.getElementById("fpHeader");
@@ -551,30 +659,22 @@
 
     const plyr = new Plyr(playerEl, {
       seekTime: 5,
-      controls: [
-        "rewind",
-        "play",
-        "fast-forward",
-        "progress",
-        "current-time",
-        "duration",
-        "mute",
-        "volume"
-      ]
+      controls: ["rewind","play","fast-forward","progress","current-time","duration","mute","volume"]
     });
 
     // =========================
-    // LOCAL STORAGE (3. repo için ayrı namespace)
+    // LOCAL STORAGE (Güncel için ayrı namespace)
     // =========================
     const LS = {
-      favs:  "fsp3.favs.v1",
-      sels:  "fsp3.sels.v1",
-      pos:   "fsp3.fp.pos.v1",
-      durs:  "fsp3.durs.v1",
-      sortMode: "fsp3.sort.mode.v1",
-      sortDirDur: "fsp3.sort.dur.dir.v1",
-      sortDirDate: "fsp3.sort.date.dir.v1",
-      speed: "fsp3.speed.v1"
+      favs:  "fsp1.favs.v1",
+      sels:  "fsp1.sels.v1",
+      pos:   "fsp1.fp.pos.v1",
+      durs:  "fsp1.durs.v1",
+      sortMode: "fsp1.sort.mode.v1",
+      sortDirDur: "fsp1.sort.dur.dir.v1",
+      sortDirDate: "fsp1.sort.date.dir.v1",
+      speed: "fsp1.speed.v1",
+      zoom:  "fsp1.ui.zoom.v1"
     };
 
     const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
@@ -587,8 +687,8 @@
     let filterFav  = false;
     let filterSel  = false;
 
-    let items = [];        // birleşik
-    let activeId = null;   // birleşik id
+    let items = [];
+    let activeId = null;
 
     let sortMode = localStorage.getItem(LS.sortMode) || "title";
     let durSortDir  = (localStorage.getItem(LS.sortDirDur) === "desc") ? "desc" : "asc";
@@ -597,7 +697,7 @@
     // =========================
     // SPEED
     // =========================
-    const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75, 2.0, 2.25];
+    const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75];
     let speedIndex = SPEEDS.indexOf(1);
 
     function fmtSpeed(v){
@@ -636,6 +736,94 @@
     fastBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex + 1); });
 
     // =========================
+    // ZOOM (% görünüm) - player dahil + double tap reset
+    // =========================
+    const ZOOMS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2];
+    let zoomIndex = ZOOMS.indexOf(1);
+    let uiScale = 1;
+    let useTransformScale = false;
+
+    function setZoomUI(v){
+      const pct = Math.round(v * 100) + "%";
+      zoomOutBtn.disabled = (zoomIndex <= 0);
+      zoomInBtn.disabled  = (zoomIndex >= ZOOMS.length - 1);
+
+      zoomOutBtn.classList.toggle("enabled", !zoomOutBtn.disabled);
+      zoomInBtn.classList.toggle("enabled", !zoomInBtn.disabled);
+
+      zoomOutBtn.title = `Küçült (${pct})`;
+      zoomInBtn.title  = `Büyüt (${pct})`;
+      zoomOutBtn.setAttribute("aria-label", `Küçült (${pct})`);
+      zoomInBtn.setAttribute("aria-label", `Büyüt (${pct})`);
+    }
+
+    function applyZoomByIndex(idx){
+      zoomIndex = Math.max(0, Math.min(ZOOMS.length - 1, idx));
+      const v = ZOOMS[zoomIndex];
+      uiScale = v;
+
+      useTransformScale = !(window.CSS && CSS.supports && CSS.supports("zoom", "1"));
+
+      if (!useTransformScale){
+        document.documentElement.style.zoom = String(v);
+        appScaleEl.style.transform = "";
+        fp.style.transform = "";
+      } else {
+        document.documentElement.style.zoom = "";
+        appScaleEl.style.transform = `scale(${v})`;
+        fp.style.transform = `scale(${v})`;
+      }
+
+      localStorage.setItem(LS.zoom, String(v));
+      setZoomUI(v);
+      setTimeout(() => clampPlayerToViewport(), 0);
+    }
+
+    function restoreZoom(){
+      const saved = Number(localStorage.getItem(LS.zoom) || "1");
+      if (Number.isFinite(saved)){
+        const i = ZOOMS.findIndex(x => Math.abs(x - saved) < 0.001);
+        applyZoomByIndex(i === -1 ? ZOOMS.indexOf(1) : i);
+      } else {
+        applyZoomByIndex(ZOOMS.indexOf(1));
+      }
+    }
+
+    function resetZoom100(){
+      applyZoomByIndex(ZOOMS.indexOf(1));
+    }
+
+    function attachDoubleTapReset(el){
+      el.addEventListener("dblclick", (e) => { e.preventDefault(); resetZoom100(); });
+
+      let lastTap = 0;
+      el.addEventListener("touchend", (e) => {
+        const now = Date.now();
+        if (now - lastTap < 320){
+          e.preventDefault();
+          resetZoom100();
+          lastTap = 0;
+          return;
+        }
+        lastTap = now;
+      }, { passive: false });
+    }
+
+    zoomOutBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex - 1); });
+    zoomInBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex + 1); });
+    attachDoubleTapReset(zoomOutBtn);
+    attachDoubleTapReset(zoomInBtn);
+
+    // =========================
+    // SEARCH: player sakla
+    // =========================
+    function setTypingMode(on){
+      fp.classList.toggle("hiddenWhileTyping", !!on);
+    }
+    searchEl.addEventListener("focus", () => setTypingMode(true));
+    searchEl.addEventListener("blur",  () => setTypingMode(false));
+
+    // =========================
     // HELPERS
     // =========================
     function escHtml(s){
@@ -647,22 +835,18 @@
         .replace(/'/g,"&#39;");
     }
 
-    // ✅ Hastalık ismi = ilk "Dr" veya "dr" gelene kadarki kısım
-    // ✅ Boşluğu KORUR (hastalık adından sonra boşluk silinmez)
+    // ✅ Dr/dr veya Fr/fr (noktalı/noktası) öncesi, boşluğu korur
     function highlightDisease(title){
       const raw = (title ?? "").toString();
-
-      const m = raw.match(/\bdr\b/i);
+      const m = raw.match(/\b(dr|fr)\b\.?/i);
       if (!m || m.index == null) return escHtml(raw);
 
       const i = m.index;
-
-      const leftRaw = raw.slice(0, i);       // Dr öncesi (boşluk dahil)
-      const leftTrim = leftRaw.trimEnd();    // sadece kontrol/renk için
+      const leftRaw = raw.slice(0, i);
+      const leftTrim = leftRaw.trimEnd();
       if (!leftTrim.trim()) return escHtml(raw);
 
-      const trailing = leftRaw.slice(leftTrim.length); // " " gibi kalan boşluk(lar)
-
+      const trailing = leftRaw.slice(leftTrim.length);
       return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
     }
 
@@ -809,38 +993,39 @@
         a.preload = "metadata";
         a.src = it.url;
 
+        let done = false;
+
         const cleanup = () => {
           a.removeEventListener("loadedmetadata", onMeta);
           a.removeEventListener("error", onErr);
-          a.src = "";
+          try { a.src = ""; } catch {}
+        };
+
+        const finish = (ok, err) => {
+          if (done) return;
+          done = true;
+          cleanup();
+          durLoading.delete(it.id);
+          ok ? resolve() : reject(err || new Error("metadata error"));
         };
 
         const onMeta = () => {
           const dur = a.duration;
-          cleanup();
           if (Number.isFinite(dur) && dur > 0){
             durs[it.id] = dur;
             saveMap(LS.durs, durs);
             scheduleRerender();
           }
-          durLoading.delete(it.id);
-          resolve();
+          finish(true);
         };
 
-        const onErr = () => {
-          cleanup();
-          durLoading.delete(it.id);
-          reject(new Error("metadata error"));
-        };
+        const onErr = () => finish(false, new Error("metadata error"));
 
         a.addEventListener("loadedmetadata", onMeta, { once: true });
         a.addEventListener("error", onErr, { once: true });
 
         setTimeout(() => {
-          if (!durs[it.id] && durLoading.has(it.id)){
-            durLoading.delete(it.id);
-            reject(new Error("timeout"));
-          }
+          if (!done) finish(false, new Error("timeout"));
         }, 12000);
       });
     }
@@ -878,92 +1063,45 @@
         const url = URL.createObjectURL(blob);
         clickDownload(url, filename);
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      }catch(err){
+      }catch{
         window.location.href = fileUrl;
       }
     }
 
     // =========================
-    // LOAD: Source 1 (IA metadata)
+    // LOAD (IA metadata)
     // =========================
     function buildDownloadUrl(identifier, name){
       const parts = (name || "").split("/").map(p => encodeURIComponent(p));
       return `https://archive.org/download/${identifier}/${parts.join("/")}`;
     }
 
-    async function loadSource1(){
-      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(IA_IDENTIFIER_1)}?v=${Date.now()}`;
-      const res = await fetch(metaUrl, { cache: "no-store" });
-      if (!res.ok) throw new Error("IA1 metadata okunamadı");
-      const j = await res.json();
-
-      const files = Array.isArray(j.files) ? j.files : [];
-      const audio = files
-        .filter(f => {
-          const name = (f.name || "").toLowerCase();
-          if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
-          if (!("source" in f)) return true;
-          return (String(f.source).toLowerCase() === "original");
-        })
-        .map((f, idx) => {
-          const name = f.name || "";
-          const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
-          const url = buildDownloadUrl(IA_IDENTIFIER_1, name);
-          const localId = name || url || (title + "#" + idx);
-          const id = "S1|" + localId;
-          return { id, title, name, url, src: "S1" };
-        });
-
-      return audio;
-    }
-
-    // =========================
-    // LOAD: Source 2 (ARCHIVE_ID_2)
-    // =========================
-    async function loadSource2(){
-      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(ARCHIVE_ID_2)}?v=${Date.now()}`;
-      const res = await fetch(metaUrl, { cache: "no-store" });
-      if (!res.ok) throw new Error("IA2 metadata okunamadı");
-      const data = await res.json();
-
-      const files = Array.isArray(data.files) ? data.files : [];
-      const audio = files
-        .filter(f => {
-          const name = (f.name || "").toLowerCase();
-          return name.endsWith(".mp3") || name.endsWith(".m4a");
-        })
-        .map((f, idx) => {
-          const file = f.name || "";
-          const title =
-            (f.title && String(f.title).trim()) ||
-            decodeURIComponentSafe(file.split("/").pop() || file) ||
-            ("Kayıt " + (idx + 1));
-
-          const url = new URL(file, BASE_2).toString();
-          const id = "S2|" + (file || title || String(idx));
-          return { id, title, file, url, src: "S2" };
-        });
-
-      return audio;
-    }
-
-    // =========================
-    // Merge + init
-    // =========================
     async function loadItems(){
       statusEl.textContent = "Yükleniyor...";
 
       try{
-        const [a1, a2] = await Promise.allSettled([loadSource1(), loadSource2()]);
-        const list = [];
+        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(IA_IDENTIFIER_1)}?v=${Date.now()}`;
+        const res = await fetch(metaUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("IA metadata okunamadı");
+        const j = await res.json();
 
-        if (a1.status === "fulfilled") list.push(...a1.value);
-        else console.warn(a1.reason);
+        const files = Array.isArray(j.files) ? j.files : [];
+        const list = files
+          .filter(f => {
+            const name = (f.name || "").toLowerCase();
+            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+            if (!("source" in f)) return true;
+            return (String(f.source).toLowerCase() === "original");
+          })
+          .map((f, idx) => {
+            const name = f.name || "";
+            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+            const url = buildDownloadUrl(IA_IDENTIFIER_1, name);
+            const localId = name || url || (title + "#" + idx);
+            const id = "S1|" + localId;
+            return { id, title, name, url, src: "S1" };
+          });
 
-        if (a2.status === "fulfilled") list.push(...a2.value);
-        else console.warn(a2.reason);
-
-        // title'a göre alfabetik
         list.sort((x,y) => x.title.localeCompare(y.title, "tr"));
 
         items = list;
@@ -1042,7 +1180,6 @@
 
         const title = document.createElement("div");
         title.className = "title";
-        // ✅ Hastalık adını turuncu yap (Dr/dr öncesi) + boşluğu koru
         title.innerHTML = highlightDisease(it.title);
 
         const dur = document.createElement("div");
@@ -1116,6 +1253,7 @@
             <path d="M5 21h14"/>
           </svg>`;
       }
+
       return btn;
     }
 
@@ -1166,7 +1304,6 @@
       };
 
       playerEl.addEventListener("canplay", onCanPlay);
-
       setTimeout(() => { if (playerEl.paused) tryPlay(); }, 600);
     }
 
@@ -1211,7 +1348,7 @@
     });
 
     // =========================
-    // Filters
+    // FILTERS
     // =========================
     filterFavBtn.addEventListener("click", () => { filterFav = !filterFav; render(); });
     filterSelBtn.addEventListener("click", () => { filterSel = !filterSel; render(); });
@@ -1228,10 +1365,14 @@
       render();
     });
 
-    searchEl.addEventListener("input", () => render());
+    let searchTimer = null;
+    searchEl.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => render(), 90);
+    });
 
     // =========================
-    // DRAGGABLE PLAYER + clamp fix
+    // DRAGGABLE PLAYER + clamp (zoom uyumlu)
     // =========================
     function restorePlayerPos(){
       try{
@@ -1250,13 +1391,20 @@
       localStorage.setItem(LS.pos, JSON.stringify({x,y}));
     }
 
-    function clampPlayerToViewport(){
+    function getViewportWH(){
       const vv = window.visualViewport;
       const vw = (vv && vv.width)  ? vv.width  : window.innerWidth;
       const vh = (vv && vv.height) ? vv.height : window.innerHeight;
+      return { vw, vh };
+    }
 
-      const w = fp.offsetWidth;
-      const h = fp.offsetHeight;
+    function clampPlayerToViewport(){
+      const { vw, vh } = getViewportWH();
+
+      const w0 = fp.offsetWidth;
+      const h0 = fp.offsetHeight;
+      const w = useTransformScale ? (w0 * uiScale) : w0;
+      const h = useTransformScale ? (h0 * uiScale) : h0;
 
       const minX = 8;
       const minY = 8;
@@ -1279,15 +1427,23 @@
       savePlayerPos(nx, ny);
     }
 
+    const DRAG_IGNORE_SELECTOR =
+      "button, a, input, textarea, select, option, " +
+      "#fpHeaderRight, .speedWrap, " +
+      ".plyr__controls, .plyr__control, .plyr__progress, .plyr__seek, .plyr__volume, .plyr__time";
+
+    function shouldStartDrag(target){
+      return !(target && target.closest && target.closest(DRAG_IGNORE_SELECTOR));
+    }
+
     let dragging = false;
     let startX = 0, startY = 0, startLeft = 0, startTop = 0;
 
-    fpHeader.addEventListener("pointerdown", (e) => {
-      if (e.target && e.target.closest && e.target.closest("#fpHeaderRight")) return;
+    fp.addEventListener("pointerdown", (e) => {
+      if (!shouldStartDrag(e.target)) return;
 
       dragging = true;
-      fpHeader.setPointerCapture(e.pointerId);
-      fpHeader.style.cursor = "grabbing";
+      fp.setPointerCapture(e.pointerId);
 
       const rect = fp.getBoundingClientRect();
       startX = e.clientX;
@@ -1295,25 +1451,30 @@
       startLeft = rect.left;
       startTop = rect.top;
 
+      fpHeader.style.cursor = "grabbing";
       fp.style.left = startLeft + "px";
       fp.style.top = startTop + "px";
       fp.style.bottom = "auto";
       fp.style.right = "auto";
     });
 
-    fpHeader.addEventListener("pointermove", (e) => {
+    fp.addEventListener("pointermove", (e) => {
       if (!dragging) return;
 
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      const w = fp.offsetWidth;
-      const h = fp.offsetHeight;
+      const w0 = fp.offsetWidth;
+      const h0 = fp.offsetHeight;
+      const w = useTransformScale ? (w0 * uiScale) : w0;
+      const h = useTransformScale ? (h0 * uiScale) : h0;
+
+      const { vw, vh } = getViewportWH();
 
       const minX = 8;
       const minY = 8;
-      const maxX = window.innerWidth - w - 8;
-      const maxY = window.innerHeight - h - 8;
+      const maxX = Math.max(minX, vw - w - 8);
+      const maxY = Math.max(minY, vh - h - 8);
 
       const nx = Math.min(maxX, Math.max(minX, startLeft + dx));
       const ny = Math.min(maxY, Math.max(minY, startTop + dy));
@@ -1324,10 +1485,11 @@
       savePlayerPos(nx, ny);
     });
 
-    fpHeader.addEventListener("pointerup", (e) => {
+    fp.addEventListener("pointerup", (e) => {
+      if (!dragging) return;
       dragging = false;
       fpHeader.style.cursor = "grab";
-      try { fpHeader.releasePointerCapture(e.pointerId); } catch {}
+      try { fp.releasePointerCapture(e.pointerId); } catch {}
       clampPlayerToViewport();
     });
 
@@ -1344,9 +1506,21 @@
     // =========================
     setSortIcons();
     restorePlayerPos();
+    restoreSpeed();
+    restoreZoom();
     setTimeout(clampPlayerToViewport, 0);
 
-    restoreSpeed();
+    // NAV ACTIVE
+    (function setActiveNav(){
+      const here = location.href.replace(/\/$/, "");
+      document.querySelectorAll(".navRow .navLink").forEach(a => {
+        a.classList.remove("on");
+        const u = (a.getAttribute("href") || "").replace(/\/$/, "");
+        if (!u) return;
+        if (here === u || here.startsWith(u + "/")) a.classList.add("on");
+      });
+    })();
+
     loadItems();
   </script>
 </body>
