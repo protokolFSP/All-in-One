@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FSP Audio — Güncel</title>
+  <title>FSP Audio — Birleşik Liste</title>
 
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
@@ -13,15 +13,11 @@
       --muted:#6b6b6b;
       --bg:#ffffff;
       --hover:#f7f7f7;
-
-      --active:#cfe9ff;
-      --activeGlow: 0 0 0 2px rgba(43,124,255,.34) inset, 0 12px 26px rgba(43,124,255,.14);
-
+      --active:#e8f3ff;
       --shadow: 0 12px 30px rgba(0,0,0,.12);
 
       --blue:#2b7cff;
       --blueGlow: 0 0 0 4px rgba(43,124,255,.24), 0 10px 22px rgba(43,124,255,.10);
-
       --green:#16a34a;
       --greenGlow: 0 0 0 4px rgba(22,163,74,.22), 0 10px 22px rgba(22,163,74,.10);
     }
@@ -38,6 +34,13 @@
     #appScale{
       transform-origin: top left;
       will-change: transform;
+    }
+
+    h1{
+      font-size: 1.55rem;
+      margin: 0 0 12px 0;
+      font-weight: 650;
+      letter-spacing: .2px;
     }
 
     .pageTitle{
@@ -75,7 +78,7 @@
     }
     .navLink:hover{ background: var(--hover); }
     .navLink.on{
-      border-color:var(--blue);
+      border-color:#2b7cff;
       background: rgba(43,124,255,.10);
       box-shadow: 0 0 0 3px rgba(43,124,255,.16) inset;
     }
@@ -109,12 +112,12 @@
     }
     #resetBtn:hover{ background: var(--hover); }
 
-    /* ✅ Zoom - SVG ikon (daha aralıklı + Hepsi'den uzak + canlı) */
+    /* ✅ Zoom (SVG) – Hepsi’den uzak + daha geniş aralık + canlı */
     .zoomWrap{
       display:flex;
       align-items:center;
-      gap: 24px;
-      margin-left: 14px;
+      gap: 24px;         /* iki kat geniş boşluk */
+      margin-left: 14px; /* Hepsi’den uzaklaştır */
       padding: 6px;
       border: 1px solid #d8d8d8;
       border-radius: 14px;
@@ -236,35 +239,18 @@
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
 
-    #list{ border-bottom: 1px solid var(--border); }
+    #list{
+      border-bottom: 1px solid var(--border);
+    }
 
-    /* Zebra */
     .itemRow{
       padding: 4px 8px;
-      border-bottom: 1px solid #ececec;
+      border-bottom: 1px solid #f2f2f2;
       cursor: pointer;
-      background: #f7f7f7;
+      background: transparent;
     }
-    #list .itemRow:nth-child(even){ background: #eeeeee; }
     .itemRow:hover{ background: var(--hover); }
-
-    /* Aktif satır */
-    .itemRow.active{
-      background: var(--active) !important;
-      box-shadow: var(--activeGlow);
-      position: relative;
-    }
-    .itemRow.active:hover{ background: var(--active) !important; }
-    .itemRow.active::before{
-      content:"";
-      position:absolute;
-      left:0;
-      top:0;
-      bottom:0;
-      width:4px;
-      background: var(--blue);
-      border-radius: 4px;
-    }
+    .itemRow.active{ background: var(--active); }
 
     .title{
       font-size: 1.02rem;
@@ -324,7 +310,6 @@
       stroke: var(--green);
       stroke-width: 2.6;
     }
-
     .iconBtn svg{ width: 14px; height: 14px; opacity: .9; }
 
     .filterBtn{
@@ -366,7 +351,7 @@
       touch-action: none;
     }
 
-    /* ✅ Arama sırasında player görünmesin */
+    /* ✅ Search yazarken player input’u kapatmasın */
     #floatingPlayer.hiddenWhileTyping{
       opacity: 0;
       pointer-events: none;
@@ -462,7 +447,9 @@
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
 
-    #fpBody{ padding: 10px 12px 12px 12px; }
+    #fpBody{
+      padding: 10px 12px 12px 12px;
+    }
 
     #status{
       margin: 8px 2px 0 2px;
@@ -473,12 +460,6 @@
 
     .plyr--audio .plyr__controls{
       border-radius: 12px;
-      flex-wrap: wrap;
-      row-gap: 8px;
-    }
-    .plyr--audio .plyr__controls .plyr__progress{
-      flex: 1 1 100%;
-      min-width: 0;
     }
 
     @media (max-width: 680px){
@@ -505,12 +486,12 @@
 
 <body>
   <div id="appScale">
-    <h1 class="pageTitle">FSP Audio — Güncel</h1>
+    <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
 
     <nav class="navRow" aria-label="Sayfalar">
       <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
       <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2021–23</a>
-      <a class="navLink" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
+      <a class="navLink on" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
     </nav>
 
     <div class="topbar">
@@ -539,7 +520,6 @@
 
     <div id="meta">Görünən: 0 / Toplam: 0</div>
 
-    <!-- Header: Kayıt | Süre | ⭐ | ✓ | (boş) -->
     <div class="headerRow">
       <div class="colTitle">
         <div class="titleHead">
@@ -617,11 +597,11 @@
 
   <script>
     // =========================
-    // GÜNCEL KAYNAK (IA metadata)
+    // KAYNAKLAR (1 + 2 birleştirme)
     // =========================
     const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
-
-    // Download Worker
+    const ARCHIVE_ID_2 = "FSP21_23";
+    const BASE_2 = `https://archive.org/download/${ARCHIVE_ID_2}/`;
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
 
     // =========================
@@ -663,18 +643,18 @@
     });
 
     // =========================
-    // LOCAL STORAGE (Güncel için ayrı namespace)
+    // LOCAL STORAGE (All-in-One için namespace)
     // =========================
     const LS = {
-      favs:  "fsp1.favs.v1",
-      sels:  "fsp1.sels.v1",
-      pos:   "fsp1.fp.pos.v1",
-      durs:  "fsp1.durs.v1",
-      sortMode: "fsp1.sort.mode.v1",
-      sortDirDur: "fsp1.sort.dur.dir.v1",
-      sortDirDate: "fsp1.sort.date.dir.v1",
-      speed: "fsp1.speed.v1",
-      zoom:  "fsp1.ui.zoom.v1"
+      favs:  "fsp3.favs.v1",
+      sels:  "fsp3.sels.v1",
+      pos:   "fsp3.fp.pos.v1",
+      durs:  "fsp3.durs.v1",
+      sortMode: "fsp3.sort.mode.v1",
+      sortDirDur: "fsp3.sort.dur.dir.v1",
+      sortDirDate: "fsp3.sort.date.dir.v1",
+      speed: "fsp3.speed.v1",
+      zoom:  "fsp3.ui.zoom.v1"
     };
 
     const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
@@ -697,7 +677,7 @@
     // =========================
     // SPEED
     // =========================
-    const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75];
+    const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75, 2.0, 2.25];
     let speedIndex = SPEEDS.indexOf(1);
 
     function fmtSpeed(v){
@@ -736,7 +716,7 @@
     fastBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex + 1); });
 
     // =========================
-    // ZOOM (% görünüm) - player dahil + double tap reset
+    // ZOOM (% görünüm) – player dahil + double-tap reset
     // =========================
     const ZOOMS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2];
     let zoomIndex = ZOOMS.indexOf(1);
@@ -745,6 +725,7 @@
 
     function setZoomUI(v){
       const pct = Math.round(v * 100) + "%";
+
       zoomOutBtn.disabled = (zoomIndex <= 0);
       zoomInBtn.disabled  = (zoomIndex >= ZOOMS.length - 1);
 
@@ -884,7 +865,6 @@
       try { return decodeURIComponent(s); } catch { return s; }
     }
 
-    // dd.mm.yy / dd.mm.yyyy yakala (dosya adı sonu)
     function parseEndDate(item){
       const raw0 = (item.name || item.file || item.title || "").toString();
       let s;
@@ -949,7 +929,7 @@
     });
 
     // =========================
-    // DURATION LOADER
+    // DURATION LOADER (timeout cleanup fix)
     // =========================
     const durQueue = [];
     const durLoading = new Set();
@@ -978,12 +958,10 @@
       while (durActive < DUR_CONCURRENCY && durQueue.length){
         const it = durQueue.shift();
         durActive++;
-        loadDurationFor(it)
-          .catch(() => {})
-          .finally(() => {
-            durActive--;
-            pumpDurationQueue();
-          });
+        loadDurationFor(it).catch(() => {}).finally(() => {
+          durActive--;
+          pumpDurationQueue();
+        });
       }
     }
 
@@ -1069,38 +1047,74 @@
     }
 
     // =========================
-    // LOAD (IA metadata)
+    // LOAD: Source 1 (IA metadata)
     // =========================
     function buildDownloadUrl(identifier, name){
       const parts = (name || "").split("/").map(p => encodeURIComponent(p));
       return `https://archive.org/download/${identifier}/${parts.join("/")}`;
     }
 
+    async function loadSource1(){
+      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(IA_IDENTIFIER_1)}?v=${Date.now()}`;
+      const res = await fetch(metaUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error("IA1 metadata okunamadı");
+      const j = await res.json();
+
+      const files = Array.isArray(j.files) ? j.files : [];
+      return files
+        .filter(f => {
+          const name = (f.name || "").toLowerCase();
+          if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+          if (!("source" in f)) return true;
+          return (String(f.source).toLowerCase() === "original");
+        })
+        .map((f, idx) => {
+          const name = f.name || "";
+          const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+          const url = buildDownloadUrl(IA_IDENTIFIER_1, name);
+          const localId = name || url || (title + "#" + idx);
+          const id = "S1|" + localId;
+          return { id, title, name, url, src: "S1" };
+        });
+    }
+
+    // =========================
+    // LOAD: Source 2 (ARCHIVE_ID_2)
+    // =========================
+    async function loadSource2(){
+      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(ARCHIVE_ID_2)}?v=${Date.now()}`;
+      const res = await fetch(metaUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error("IA2 metadata okunamadı");
+      const data = await res.json();
+
+      const files = Array.isArray(data.files) ? data.files : [];
+      return files
+        .filter(f => {
+          const name = (f.name || "").toLowerCase();
+          return name.endsWith(".mp3") || name.endsWith(".m4a");
+        })
+        .map((f, idx) => {
+          const file = f.name || "";
+          const title =
+            (f.title && String(f.title).trim()) ||
+            decodeURIComponentSafe(file.split("/").pop() || file) ||
+            ("Kayıt " + (idx + 1));
+
+          const url = new URL(file, BASE_2).toString();
+          const id = "S2|" + (file || title || String(idx));
+          return { id, title, file, url, src: "S2" };
+        });
+    }
+
     async function loadItems(){
       statusEl.textContent = "Yükleniyor...";
 
       try{
-        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(IA_IDENTIFIER_1)}?v=${Date.now()}`;
-        const res = await fetch(metaUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("IA metadata okunamadı");
-        const j = await res.json();
+        const [a1, a2] = await Promise.allSettled([loadSource1(), loadSource2()]);
+        const list = [];
 
-        const files = Array.isArray(j.files) ? j.files : [];
-        const list = files
-          .filter(f => {
-            const name = (f.name || "").toLowerCase();
-            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
-            if (!("source" in f)) return true;
-            return (String(f.source).toLowerCase() === "original");
-          })
-          .map((f, idx) => {
-            const name = f.name || "";
-            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
-            const url = buildDownloadUrl(IA_IDENTIFIER_1, name);
-            const localId = name || url || (title + "#" + idx);
-            const id = "S1|" + localId;
-            return { id, title, name, url, src: "S1" };
-          });
+        if (a1.status === "fulfilled") list.push(...a1.value);
+        if (a2.status === "fulfilled") list.push(...a2.value);
 
         list.sort((x,y) => x.title.localeCompare(y.title, "tr"));
 
@@ -1253,7 +1267,6 @@
             <path d="M5 21h14"/>
           </svg>`;
       }
-
       return btn;
     }
 
@@ -1327,7 +1340,6 @@
 
     prevBtn.addEventListener("click", playPrev);
     nextBtn.addEventListener("click", playNext);
-
     plyr.on("ended", () => { setTimeout(() => playNext(), 0); });
 
     document.addEventListener("keydown", (e) => {
@@ -1348,7 +1360,7 @@
     });
 
     // =========================
-    // FILTERS
+    // FILTERS + SEARCH debounce
     // =========================
     filterFavBtn.addEventListener("click", () => { filterFav = !filterFav; render(); });
     filterSelBtn.addEventListener("click", () => { filterSel = !filterSel; render(); });
@@ -1372,7 +1384,7 @@
     });
 
     // =========================
-    // DRAGGABLE PLAYER + clamp (zoom uyumlu)
+    // DRAGGABLE PLAYER (tüm player) + clamp (zoom uyumlu)
     // =========================
     function restorePlayerPos(){
       try{
@@ -1444,6 +1456,7 @@
 
       dragging = true;
       fp.setPointerCapture(e.pointerId);
+      fpHeader.style.cursor = "grabbing";
 
       const rect = fp.getBoundingClientRect();
       startX = e.clientX;
@@ -1451,7 +1464,6 @@
       startLeft = rect.left;
       startTop = rect.top;
 
-      fpHeader.style.cursor = "grabbing";
       fp.style.left = startLeft + "px";
       fp.style.top = startTop + "px";
       fp.style.bottom = "auto";
@@ -1481,7 +1493,6 @@
 
       fp.style.left = nx + "px";
       fp.style.top = ny + "px";
-
       savePlayerPos(nx, ny);
     });
 
@@ -1494,9 +1505,7 @@
     });
 
     window.addEventListener("resize", () => clampPlayerToViewport());
-    window.addEventListener("orientationchange", () => {
-      setTimeout(clampPlayerToViewport, 150);
-    });
+    window.addEventListener("orientationchange", () => setTimeout(clampPlayerToViewport, 150));
     if (window.visualViewport){
       window.visualViewport.addEventListener("resize", () => clampPlayerToViewport());
     }
@@ -1509,18 +1518,6 @@
     restoreSpeed();
     restoreZoom();
     setTimeout(clampPlayerToViewport, 0);
-
-    // NAV ACTIVE
-    (function setActiveNav(){
-      const here = location.href.replace(/\/$/, "");
-      document.querySelectorAll(".navRow .navLink").forEach(a => {
-        a.classList.remove("on");
-        const u = (a.getAttribute("href") || "").replace(/\/$/, "");
-        if (!u) return;
-        if (here === u || here.startsWith(u + "/")) a.classList.add("on");
-      });
-    })();
-
     loadItems();
   </script>
 </body>
