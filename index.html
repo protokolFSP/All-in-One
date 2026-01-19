@@ -14,7 +14,6 @@
       --bg:#ffffff;
       --hover:#f7f7f7;
       --active:#e8f3ff;
-      --shadow: 0 12px 30px rgba(0,0,0,.12);
 
       --blue:#2b7cff;
       --blueGlow: 0 0 0 4px rgba(43,124,255,.24), 0 10px 22px rgba(43,124,255,.10);
@@ -34,13 +33,6 @@
     #appScale{
       transform-origin: top left;
       will-change: transform;
-    }
-
-    h1{
-      font-size: 1.55rem;
-      margin: 0 0 12px 0;
-      font-weight: 650;
-      letter-spacing: .2px;
     }
 
     .pageTitle{
@@ -112,12 +104,12 @@
     }
     #resetBtn:hover{ background: var(--hover); }
 
-    /* ✅ Zoom (SVG) – Hepsi’den uzak + daha geniş aralık + canlı */
+    /* Zoom (SVG) – Hepsi’den uzak + daha geniş aralık + canlı */
     .zoomWrap{
       display:flex;
       align-items:center;
-      gap: 24px;         /* iki kat geniş boşluk */
-      margin-left: 14px; /* Hepsi’den uzaklaştır */
+      gap: 24px;
+      margin-left: 14px;
       padding: 6px;
       border: 1px solid #d8d8d8;
       border-radius: 14px;
@@ -331,18 +323,27 @@
     }
     .filterBtn svg{ width:14px; height:14px; }
 
-    /* Floating player */
+    /* ✅ Floating player: belirgin border + Apple-benzeri asimetrik shadow */
     #floatingPlayer{
       position: fixed;
       left: max(18px, env(safe-area-inset-left));
       bottom: max(18px, env(safe-area-inset-bottom));
       width: min(720px, calc(100vw - 36px));
       background: white;
-      border: 1px solid #e0e0e0;
+
+      border: 1.5px solid #d6d6d6;
+      border-right-color: #bdbdbd;
+      border-bottom-color:#b3b3b3;
       border-radius: 18px;
-      box-shadow: var(--shadow);
+
+      box-shadow:
+        10px 34px 86px rgba(0,0,0,.20),
+        4px 14px 30px rgba(0,0,0,.10),
+        0px 2px 6px rgba(0,0,0,.06);
+
       overflow: hidden;
       z-index: 9999;
+
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
       transform-origin: top left;
@@ -351,24 +352,43 @@
       touch-action: none;
     }
 
-    /* ✅ Search yazarken player input’u kapatmasın */
     #floatingPlayer.hiddenWhileTyping{
       opacity: 0;
       pointer-events: none;
     }
 
+    /* Header: emboss çizgi + üstü biraz koyu */
     #fpHeader{
       display:flex;
       align-items:center;
       justify-content:space-between;
       padding: 10px 12px;
-      border-bottom: 1px solid #f0f0f0;
       background: #fbfbfb;
+
       cursor: grab;
       user-select:none;
       gap: 10px;
       touch-action: none;
       line-height: 1.05;
+
+      border-bottom: none;
+      position: relative;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.85),
+        inset 0 -1px 0 rgba(0,0,0,.04);
+    }
+
+    #fpHeader::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 2px;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.18),
+        rgba(255,255,255,.80)
+      );
     }
 
     #fpTitle{
@@ -449,6 +469,7 @@
 
     #fpBody{
       padding: 10px 12px 12px 12px;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,.05);
     }
 
     #status{
@@ -476,7 +497,6 @@
       }
     }
 
-    /* Dr/dr + Fr/fr öncesi */
     .diseaseName{
       color: #c2410c;
       font-weight: 650;
@@ -643,7 +663,7 @@
     });
 
     // =========================
-    // LOCAL STORAGE (All-in-One için namespace)
+    // LOCAL STORAGE (All-in-One)
     // =========================
     const LS = {
       favs:  "fsp3.favs.v1",
@@ -816,7 +836,7 @@
         .replace(/'/g,"&#39;");
     }
 
-    // ✅ Dr/dr veya Fr/fr (noktalı/noktası) öncesi, boşluğu korur
+    // Dr/dr veya Fr/fr (noktalı/noktası) öncesi, boşluğu korur
     function highlightDisease(title){
       const raw = (title ?? "").toString();
       const m = raw.match(/\b(dr|fr)\b\.?/i);
@@ -929,7 +949,7 @@
     });
 
     // =========================
-    // DURATION LOADER (timeout cleanup fix)
+    // DURATION LOADER
     // =========================
     const durQueue = [];
     const durLoading = new Set();
@@ -1384,7 +1404,7 @@
     });
 
     // =========================
-    // DRAGGABLE PLAYER (tüm player) + clamp (zoom uyumlu)
+    // DRAGGABLE PLAYER (tüm player) + clamp (zoom uyumlu) + drag sonrası click iptal
     // =========================
     function restorePlayerPos(){
       try{
@@ -1441,8 +1461,8 @@
 
     const DRAG_IGNORE_SELECTOR =
       "button, a, input, textarea, select, option, " +
-      "#fpHeaderRight, .speedWrap, " +
-      ".plyr__controls, .plyr__control, .plyr__progress, .plyr__seek, .plyr__volume, .plyr__time";
+      ".speedWrap, .speedCtlBtn, .miniBtn, " +
+      ".plyr__controls, .plyr__control, .plyr__progress, .plyr__seek, .plyr__volume, .plyr__time, .plyr__menu";
 
     function shouldStartDrag(target){
       return !(target && target.closest && target.closest(DRAG_IGNORE_SELECTOR));
@@ -1450,11 +1470,15 @@
 
     let dragging = false;
     let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    let moved = false;
+    let suppressClickUntil = 0;
 
     fp.addEventListener("pointerdown", (e) => {
       if (!shouldStartDrag(e.target)) return;
 
       dragging = true;
+      moved = false;
+
       fp.setPointerCapture(e.pointerId);
       fpHeader.style.cursor = "grabbing";
 
@@ -1476,6 +1500,8 @@
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
+      if (!moved && (Math.abs(dx) + Math.abs(dy) > 6)) moved = true;
+
       const w0 = fp.offsetWidth;
       const h0 = fp.offsetHeight;
       const w = useTransformScale ? (w0 * uiScale) : w0;
@@ -1496,13 +1522,30 @@
       savePlayerPos(nx, ny);
     });
 
-    fp.addEventListener("pointerup", (e) => {
+    function endDrag(pointerId){
       if (!dragging) return;
+
       dragging = false;
       fpHeader.style.cursor = "grab";
-      try { fp.releasePointerCapture(e.pointerId); } catch {}
+
+      try { fp.releasePointerCapture(pointerId); } catch {}
       clampPlayerToViewport();
-    });
+
+      if (moved){
+        suppressClickUntil = Date.now() + 350;
+        moved = false;
+      }
+    }
+
+    fp.addEventListener("pointerup", (e) => endDrag(e.pointerId));
+    fp.addEventListener("pointercancel", (e) => endDrag(e.pointerId));
+
+    fp.addEventListener("click", (e) => {
+      if (Date.now() < suppressClickUntil){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
 
     window.addEventListener("resize", () => clampPlayerToViewport());
     window.addEventListener("orientationchange", () => setTimeout(clampPlayerToViewport, 150));
