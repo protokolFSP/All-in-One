@@ -698,11 +698,16 @@
     // SOURCES (All-in-One)
     // =========================
     const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
-    const IA_IDENTIFIER_2 = "FSP21_23"; // gerekirse değiştir
+    const IA_IDENTIFIER_2 = "FSP21_23";
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
 
     // COUNTERS
     const COUNTER_API = "https://fspdlcounter.protokolfsp.workers.dev";
+
+    // CACHE CONTROL
+    const FORCE_REFRESH = new URLSearchParams(location.search).has("refresh"); // ?refresh=1
+    const S1_CACHE_TTL_MS = 72 * 60 * 60 * 1000; // 72 saat
+    const S2_NEVER_CHANGES = true; // FSP21_23: statik
 
     const IS_SAFARI = (() => {
       const ua = navigator.userAgent || "";
@@ -903,11 +908,28 @@
       sortDirPlay: "fsp3.sort.play.dir.v1",
       sortDirDl:   "fsp3.sort.dl.dir.v1",
       speed: "fsp3.speed.v1",
-      zoom:  "fsp3.ui.zoom.v1"
+      zoom:  "fsp3.ui.zoom.v1",
+
+      // SOURCE LIST CACHE (All-in-One)
+      itemsS1:   "fsp3.items.S1.v1",
+      itemsS1At: "fsp3.items.S1.at.v1",
+      itemsS2:   "fsp3.items.S2.v1",
+      itemsS2At: "fsp3.items.S2.at.v1",
     };
 
     const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
     const saveMap = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+    function loadAny(k){
+      try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; }
+    }
+    function saveAny(k, v){
+      localStorage.setItem(k, JSON.stringify(v));
+    }
+    function loadAt(k){
+      const n = Number(localStorage.getItem(k) || "0");
+      return Number.isFinite(n) ? n : 0;
+    }
 
     let favs  = loadMap(LS.favs);
     let durs  = loadMap(LS.durs);
@@ -1340,37 +1362,92 @@
       return `https://archive.org/download/${identifier}/${parts.join("/")}`;
     }
 
-    async function loadSource(identifier, prefix){
-      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
-      const res = await fetch(metaUrl, { cache: "no-store" });
-      if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
-      const j = await res.json();
+    // =========================
+    // LOAD SOURCE (CACHE + TTL)
+    // =========================
+    async function loadSource(identifier, prefix, opts){
+      const cacheKey   = opts?.cacheKey   || "";
+      const cacheAtKey = opts?.cacheAtKey || "";
+      const ttlMs      = Number(opts?.ttlMs || 0);
+      const never      = !!opts?.neverChanges;
 
-      const files = Array.isArray(j.files) ? j.files : [];
-      return files
-        .filter(f => {
-          const name = (f.name || "").toLowerCase();
-          if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
-          if (!("source" in f)) return true;
-          return (String(f.source).toLowerCase() === "original");
-        })
-        .map((f, idx) => {
-          const name = f.name || "";
-          const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
-          const url = buildDownloadUrl(identifier, name);
-          const localId = name || url || (title + "#" + idx);
-          const id = prefix + "|" + localId;
-          return { id, title, name, url, src: prefix };
-        });
+      const cached = cacheKey ? loadAny(cacheKey) : null;
+      const hasCache = Array.isArray(cached) && cached.length > 0;
+
+      const at = cacheAtKey ? loadAt(cacheAtKey) : 0;
+      const isFresh = never ? hasCache : (hasCache && ttlMs > 0 && (Date.now() - at) < ttlMs);
+
+      // Cache tazeyse ve refresh yoksa: NET'E ÇIKMA
+      if (!FORCE_REFRESH && isFresh){
+        return cached;
+      }
+
+      // Taze değilse: fetch dene. Hata olursa cache varsa onu döndür.
+      try{
+        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
+        const res = await fetch(metaUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
+        const j = await res.json();
+
+        const files = Array.isArray(j.files) ? j.files : [];
+        const list = files
+          .filter(f => {
+            const name = (f.name || "").toLowerCase();
+            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+            if (!("source" in f)) return true;
+            return (String(f.source).toLowerCase() === "original");
+          })
+          .map((f, idx) => {
+            const name = f.name || "";
+            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+            const url = buildDownloadUrl(identifier, name);
+            const localId = name || url || (title + "#" + idx);
+            const id = prefix + "|" + localId;
+            return { id, title, name, url, src: prefix };
+          });
+
+        // cache yaz
+        if (cacheKey){
+          try{
+            localStorage.setItem(cacheAtKey, String(Date.now()));
+            saveAny(cacheKey, list);
+          }catch{}
+        }
+
+        return list;
+      }catch(err){
+        if (hasCache) return cached;
+        throw err;
+      }
     }
 
+    // =========================
+    // LOAD ITEMS (All-in-One)
+    // =========================
     async function loadItems(){
-      statusEl.textContent = "Yükleniyor...";
+      // Cache varsa ilk açılışta "Yükleniyor..." yazma (flicker azalır)
+      const c1 = loadAny(LS.itemsS1);
+      const c2 = loadAny(LS.itemsS2);
+      const hasAnyCache =
+        (Array.isArray(c1) && c1.length) ||
+        (Array.isArray(c2) && c2.length);
+
+      statusEl.textContent = hasAnyCache ? "" : "Yükleniyor...";
 
       try{
         const [a1, a2] = await Promise.allSettled([
-          loadSource(IA_IDENTIFIER_1, "S1"),
-          loadSource(IA_IDENTIFIER_2, "S2"),
+          loadSource(IA_IDENTIFIER_1, "S1", {
+            cacheKey: LS.itemsS1,
+            cacheAtKey: LS.itemsS1At,
+            ttlMs: S1_CACHE_TTL_MS,
+            neverChanges: false
+          }),
+          loadSource(IA_IDENTIFIER_2, "S2", {
+            cacheKey: LS.itemsS2,
+            cacheAtKey: LS.itemsS2At,
+            ttlMs: 0,
+            neverChanges: S2_NEVER_CHANGES
+          }),
         ]);
 
         const list = [];
@@ -1384,10 +1461,28 @@
         scheduleRefreshCounts(100);
       }catch(err){
         console.error(err);
+
+        // Son çare: cache ile aç (varsa)
+        const fallback = [];
+        if (Array.isArray(c1)) fallback.push(...c1);
+        if (Array.isArray(c2)) fallback.push(...c2);
+
+        if (fallback.length){
+          items = fallback;
+          statusEl.textContent = "";
+          setSortIcons();
+          render();
+          scheduleRefreshCounts(120);
+          return;
+        }
+
         statusEl.textContent = "Liste yüklenemedi.";
       }
     }
 
+    // =========================
+    // UI / LIST
+    // =========================
     function getVisibleItems(){
       const q = foldTR((searchEl.value || "").trim());
 
