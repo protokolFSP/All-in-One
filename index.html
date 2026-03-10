@@ -699,6 +699,8 @@
     // =========================
     const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
     const IA_IDENTIFIER_2 = "FSP21_23";
+    const IA_IDENTIFIER_3 = "FSPneu"; // ✅ FSPneu
+    const IA3_BLOCK_PREFIXES = ["Dusseldorf","Düsseldorf","Stuttgart","Reutlingen","Sachsen","Hessen"];
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
 
     // COUNTERS
@@ -1131,7 +1133,24 @@
     function decodeURIComponentSafe(s){
       try { return decodeURIComponent(s); } catch { return s; }
     }
+function ia3IsBlockedByPrefix(fileName){
+  let base = (fileName || "").toString();
+  base = base.split("/").pop() || base;
+  base = decodeURIComponentSafe(base);
+  base = base.replace(/\.(m4a|mp3)$/i, "").trim();
+  base = base.replace(/^A[\s_-]+/i, "").trim(); // A / A_ / A-
 
+  const folded = foldTR(base);
+  for (const p of IA3_BLOCK_PREFIXES){
+    const c = foldTR(p);
+    if (!c) continue;
+    if (folded.startsWith(c)){
+      const next = folded.slice(c.length, c.length + 1);
+      if (!next || /[\s\-_0-9.:]/.test(next)) return true;
+    }
+  }
+  return false;
+}
     function parseEndDate(item){
       const raw0 = (item.name || item.file || item.title || "").toString();
       let s;
@@ -1455,6 +1474,23 @@
         if (a2.status === "fulfilled") list.push(...a2.value);
 
         items = list;
+        // ✅ S3: FSPneu ekle (şehir/eyalet önek filtresi ile)
+try{
+  const s3 = await loadSource(IA_IDENTIFIER_3, "S3", {
+    cacheKey: "fsp3.items.S3.v1",
+    cacheAtKey: "fsp3.items.S3.at.v1",
+    ttlMs: 24 * 60 * 60 * 1000,
+    neverChanges: false
+  });
+
+  if (Array.isArray(s3) && s3.length){
+    items = items.concat(
+      s3.filter(it => !ia3IsBlockedByPrefix(it?.name || it?.title || ""))
+    );
+  }
+}catch(e){
+  console.warn("FSPneu (S3) yüklenemedi:", e);
+}
         statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
         setSortIcons();
         render();
