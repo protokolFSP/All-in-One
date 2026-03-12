@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FSP Audio — Birleşik Liste</title>
 
+  <meta name="description" content="FSP Audio — Birleşik kayıt listesi ve oynatıcı (S1+S2+S3). CC altyazı + TXT transkript." />
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
   <style>
     :root{
+      --capLines: 6;
       --border:#e9e9e9;
       --muted:#6b6b6b;
       --bg:#ffffff;
@@ -20,21 +22,20 @@
       --blue:#2b7cff;
       --blueGlow: 0 0 0 4px rgba(43,124,255,.24), 0 10px 22px rgba(43,124,255,.10);
 
-      --green:#16a34a;
-      --greenGlow: 0 0 0 4px rgba(22,163,74,.22), 0 10px 22px rgba(22,163,74,.10);
-
       --orange:#f59e0b;
+      --orangeGlow: 0 0 0 4px rgba(245,158,11,.20), 0 10px 22px rgba(245,158,11,.10);
     }
 
     html, body{
       height: 100%;
       overscroll-behavior-y: none;
       background: var(--bg);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
-
     body{
       margin: 0;
-      overflow: hidden;
+      overflow: visible;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color:#111;
       line-height: 1.10;
@@ -56,13 +57,17 @@
     }
 
     .pageTitle{
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 1.7rem;
+      font-weight: 800;
       color: #0b5fff;
       background: #f1f5ff;
       padding: 12px 16px;
       border-radius: 14px;
       margin-bottom: 14px;
+      display: flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
     .navRow{
@@ -102,20 +107,44 @@
       flex-wrap: wrap;
     }
 
+    #stickyBar{
+      position: sticky;
+      top: 0;
+      z-index: 1200;
+      background: var(--bg);
+      padding: 10px 0;
+      border-radius: 16px;
+      box-shadow:
+        0 1px 0 rgba(0,0,0,.06),
+        0 10px 18px rgba(0,0,0,.05);
+    }
+    #stickyBar.docked{
+      position: fixed;
+      z-index: 1200;
+      padding: 10px 0;
+      border-radius: 16px;
+      box-shadow:
+        0 1px 0 rgba(0,0,0,.06),
+        0 14px 28px rgba(0,0,0,.10);
+    }
+    #stickyBarPh{ height: 0; }
+
     #search{
       flex: 1 1 520px;
       min-width: 220px;
-      padding: 10px 12px;
+      height: 46px;
+      padding: 0 14px;
       border: 1px solid #d8d8d8;
-      border-radius: 14px;
-      font-size: 1rem;
+      border-radius: 16px;
+      font-size: 1.05rem;
       outline: none;
     }
 
     #resetBtn{
-      padding: 10px 16px;
+      height: 46px;
+      padding: 0 16px;
       border: 1px solid #d8d8d8;
-      border-radius: 14px;
+      border-radius: 16px;
       background: white;
       cursor: pointer;
       font-size: 1rem;
@@ -142,7 +171,6 @@
       border: 1px solid #d8d8d8;
       background: white;
       cursor: pointer;
-      line-height: 1;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -152,7 +180,6 @@
     }
     .zoomBtn:hover{ background: var(--hover); }
     .zoomBtn:disabled{ opacity: .35; cursor: default; }
-
     .zoomBtn svg{
       width: 20px;
       height: 20px;
@@ -163,20 +190,12 @@
       stroke-linejoin: round;
       opacity: .95;
     }
-
-    .zoomBtn.zoomOut,
-    .zoomBtn.zoomIn{
-      opacity: .55;
-      filter: saturate(1.2);
-      color: #111;
-    }
-
+    .zoomBtn.zoomOut, .zoomBtn.zoomIn{ opacity: .55; }
     .zoomBtn.enabled.zoomOut{
       opacity: 1;
       background: rgba(255, 149, 0, .18);
       border-color: rgba(255, 149, 0, .70);
       box-shadow: 0 0 0 3px rgba(255, 149, 0, .16) inset, 0 8px 18px rgba(255, 149, 0, .12);
-      filter: saturate(1.7);
       color: #b45309;
     }
     .zoomBtn.enabled.zoomIn{
@@ -184,7 +203,6 @@
       background: rgba(34, 197, 94, .18);
       border-color: rgba(34, 197, 94, .70);
       box-shadow: 0 0 0 3px rgba(34, 197, 94, .16) inset, 0 8px 18px rgba(34, 197, 94, .12);
-      filter: saturate(1.7);
       color: #15803d;
     }
 
@@ -195,14 +213,12 @@
       line-height: 1.05;
     }
 
-    /* Kayıt | Süre | ▶︎(play) | ⭐ | ⬇︎ | ⬇︎(count) */
     .headerRow, .itemRow{
       display: grid;
       grid-template-columns: minmax(0, 1fr) 8ch 54px 36px 36px 54px;
       align-items: center;
       column-gap: 8px;
     }
-
     .headerRow{
       padding: 6px 8px;
       border-top: 1px solid var(--border);
@@ -211,7 +227,6 @@
       font-size: .92rem;
       line-height: 1.05;
     }
-
     .titleHead, .durHead{
       display:flex;
       align-items:center;
@@ -248,17 +263,8 @@
       border-color:var(--blue);
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
-
-    .sortBtn svg{
-      width: 20px;
-      height: 20px;
-      display: block;
-      flex: 0 0 auto;
-    }
-    .sortBtn .mainIcon{
-      width: 20px;
-      height: 20px;
-    }
+    .sortBtn svg{ width: 20px; height: 20px; display: block; }
+    .sortBtn .mainIcon{ width: 20px; height: 20px; }
     .sortBtn .dirIcon{
       position: absolute;
       right: 4px;
@@ -271,9 +277,7 @@
     .iconOrange{ fill: var(--orange); }
     .iconBlue{ fill: var(--blue); }
 
-    #list{
-      border-bottom: 1px solid var(--border);
-    }
+    #list{ border-bottom: 1px solid var(--border); }
 
     .itemRow{
       padding: 4px 8px;
@@ -281,17 +285,13 @@
       cursor: pointer;
       background: #f7f7f7;
     }
-    #list .itemRow:nth-child(even){
-      background: #eeeeee;
-    }
+    #list .itemRow:nth-child(even){ background: #eeeeee; }
     .itemRow:hover{ background: var(--hover); }
-
     .itemRow.active{
       background: var(--active) !important;
       box-shadow: var(--activeGlow);
       position: relative;
     }
-    .itemRow.active:hover{ background: var(--active) !important; }
     .itemRow.active::before{
       content:"";
       position:absolute;
@@ -303,42 +303,14 @@
       border-radius: 4px;
     }
 
-    .title{
-      font-size: 1.02rem;
-      font-weight: 500;
-      line-height: 1.02;
-      min-width: 0;
-    }
-
-    .dur{
-      text-align:right;
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-      font-size: .95rem;
-      user-select:none;
-      white-space: nowrap;
-      line-height: 1.00;
-    }
-
-    .countCell{
-      text-align: right;
-      color: #404040;
-      font-variant-numeric: tabular-nums;
-      font-size: .92rem;
-      user-select:none;
-      white-space: nowrap;
-      line-height: 1.00;
-      padding-right: 2px;
-    }
+    .title{ font-size: 1.02rem; font-weight: 500; line-height: 1.02; min-width: 0; }
+    .dur{ text-align:right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: .95rem; user-select:none; white-space: nowrap; line-height: 1.00; }
+    .countCell{ text-align: right; color: #404040; font-variant-numeric: tabular-nums; font-size: .92rem; user-select:none; white-space: nowrap; line-height: 1.00; padding-right: 2px; }
 
     @media (max-width: 680px){
       #scrollArea{ padding: 14px; }
       .headerRow, .itemRow{ grid-template-columns: minmax(0, 1fr) 8ch 46px 34px 34px 46px; }
-      .title{
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      .title{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       #search{ flex: 1 1 100%; }
       .zoomWrap{ margin-left: 0; }
     }
@@ -354,11 +326,12 @@
       justify-content:center;
       cursor: pointer;
       user-select:none;
-      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease, opacity .15s ease;
       justify-self: center;
+      -webkit-tap-highlight-color: transparent;
     }
     .iconBtn:hover{ background: var(--hover); }
-
+    .iconBtn:disabled{ opacity: .35; cursor: default; }
     .iconBtn.on{
       border-color: var(--blue);
       background: rgba(43,124,255,.10);
@@ -391,32 +364,22 @@
       bottom: max(18px, env(safe-area-inset-bottom));
       width: min(720px, calc(100vw - 36px));
       background: white;
-
       border: 1.5px solid #d6d6d6;
       border-right-color: #bdbdbd;
       border-bottom-color:#b3b3b3;
       border-radius: 18px;
-
       box-shadow:
         10px 34px 86px rgba(0,0,0,.20),
         4px 14px 30px rgba(0,0,0,.10),
         0px 2px 6px rgba(0,0,0,.06);
-
-      overflow: hidden;
+      overflow: visible;
       z-index: 9999;
-
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
       transform-origin: top left;
       will-change: transform;
       transition: opacity .18s ease;
       touch-action: none;
     }
-
-    #floatingPlayer.hiddenWhileTyping{
-      opacity: 0;
-      pointer-events: none;
-    }
+    #floatingPlayer.hiddenWhileTyping{ opacity: .35; }
 
     #fpHeader{
       display:flex;
@@ -424,31 +387,22 @@
       justify-content:space-between;
       padding: 10px 12px;
       background: #fbfbfb;
-
       cursor: grab;
       user-select:none;
       gap: 10px;
       touch-action: none;
       line-height: 1.05;
-
-      border-bottom: none;
       position: relative;
-
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.85),
         inset 0 -1px 0 rgba(0,0,0,.04);
     }
-
     #fpHeader::after{
       content:"";
       position:absolute;
       left:0; right:0; bottom:0;
       height: 2px;
-      background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,.18),
-        rgba(255,255,255,.80)
-      );
+      background: linear-gradient(to bottom, rgba(0,0,0,.18), rgba(255,255,255,.80));
     }
 
     #fpTitle{
@@ -467,6 +421,8 @@
       align-items:center;
       gap: 8px;
       flex: 0 0 auto;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .miniBtn{
@@ -527,53 +483,227 @@
       box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
     }
 
-    #fpBody{
-      padding: 10px 12px 12px 12px;
-      box-shadow: inset 0 1px 0 rgba(0,0,0,.05);
-    }
+    #fpBody{ padding: 10px 12px 12px 12px; box-shadow: inset 0 1px 0 rgba(0,0,0,.05); }
+    #status{ margin: 8px 2px 0 2px; color: var(--muted); font-size: .92rem; line-height: 1.05; }
 
-    #status{
-      margin: 8px 2px 0 2px;
-      color: var(--muted);
-      font-size: .92rem;
+    #captionsDock{ position:absolute; left:0; right:0; bottom:100%; transform: translateY(12px); pointer-events:none; z-index:10000; }
+    #captions{
+      pointer-events:auto;
+      margin:0;
+      padding:10px 12px;
+      padding-bottom: calc(10px + .55em);
+      border-radius:12px;
+      border: 2px solid #d3d3d3;
+      background:#fafafa;
+      white-space: pre-wrap;
+      line-height: 1.25;
+      font-size: 1.02rem;
+      overflow:hidden;
+      max-height: calc(1.25em * var(--capLines) + 34px);
+      box-shadow: 0 10px 22px rgba(0,0,0,.06);
+      cursor:pointer;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    #captions.isEmpty{ color: var(--muted); cursor: default; }
+    #captions.hidden{ display:none; }
+
+    .ccModeBtn{ width:auto; min-width:42px; padding:0 10px; border-color: var(--blue); border-radius:12px; }
+    .ccModeBtn .btnMark{ font-weight: 850; font-size: 16px; letter-spacing:.3px; line-height:1; }
+    .ccModeBtn.on{ border-color: var(--blue); background: rgba(43,124,255,.10); box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset; }
+    .ccModeBtn.on .btnMark{ color: var(--orange); }
+    .ccModeBtn:not(.on) .btnMark{ color:#404040; }
+
+    #fpTxtBtn{
+      width:auto;
+      min-width:56px;
+      padding:0 12px;
+      border-radius:12px;
+      border:1px solid rgba(245,158,11,.55);
+      background: rgba(245,158,11,.10);
+      box-shadow: 0 0 0 3px rgba(245,158,11,.10) inset;
+    }
+    #fpTxtBtn .btnMark{ font-weight:900; letter-spacing:.5px; font-size:16px; color:#b45309; line-height:1; }
+    #fpTxtBtn.on{ border-color: rgba(43,124,255,.70); background: rgba(43,124,255,.12); box-shadow: var(--blueGlow); }
+    #fpTxtBtn.on .btnMark{ color:#0b5fff; }
+
+    .diseaseName{ color: #c2410c; font-weight: 650; }
+
+    /* Transcript popup */
+    #txPanel{
+      position: fixed;
+      z-index: 10050;
+      top: max(14px, env(safe-area-inset-top));
+      right: max(14px, env(safe-area-inset-right));
+      width: min(960px, calc(100vw - 28px));
+      height: min(82vh, 860px);
+      background: #fff;
+      border: 1.5px solid #d6d6d6;
+      border-right-color: #bdbdbd;
+      border-bottom-color:#b3b3b3;
+      border-radius: 18px;
+      box-shadow: 10px 34px 86px rgba(0,0,0,.20), 4px 14px 30px rgba(0,0,0,.10), 0px 2px 6px rgba(0,0,0,.06);
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      touch-action: none;
+    }
+    #txPanel.open{ display:flex; }
+
+    #txHeader{
+      padding: 10px 12px;
+      background: #fbfbfb;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: grab;
+      user-select:none;
+      touch-action: none;
+      border-bottom: 1px solid #ececec;
       line-height: 1.05;
     }
-
-    .plyr--audio .plyr__controls{
-      border-radius: 12px;
-      flex-wrap: wrap;
-      row-gap: 8px;
-    }
-    .plyr--audio .plyr__controls .plyr__progress{
-      flex: 1 1 100%;
+    #txTitle{
+      font-weight: 650;
+      font-size: .98rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1 1 auto;
       min-width: 0;
     }
-
-    @media (max-width: 680px){
-      #fpHeader{ flex-wrap: wrap; gap: 8px; }
-      #fpTitle{
-        flex: 1 1 100%;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-      }
-      #fpHeaderRight{
-        width: 100%;
-        justify-content: flex-end;
-      }
+    #txBtns{
+      display:flex;
+      gap: 8px;
+      flex: 0 0 auto;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
-
-    .diseaseName{
-      color: #c2410c;
+    .txBtn{
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor: pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
       font-weight: 650;
+      font-size: .92rem;
+      user-select:none;
+      line-height: 1;
+      white-space: nowrap;
     }
+    .txBtn:hover{ background: var(--hover); }
+    .txBtn:disabled{ opacity: .45; cursor: default; }
+    .txBtn svg{ width: 16px; height: 16px; }
+
+    #txBody{
+      padding: 10px 12px 12px 12px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      background:#fff;
+    }
+    #txInfo{
+      color: var(--muted);
+      font-size: .92rem;
+      margin: 0 0 8px 0;
+      line-height: 1.05;
+    }
+    #txSearchRow{
+      display:none;
+      gap: 8px;
+      align-items:center;
+      margin: 0 0 10px 0;
+      padding: 8px;
+      border: 1px solid #e2e2e2;
+      border-radius: 14px;
+      background:#fff;
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    #txSearchRow.on{ display:flex; }
+    #txSearchInput{
+      flex: 1 1 auto;
+      min-width: 140px;
+      height: 46px;
+      padding: 0 14px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      outline: none;
+    }
+    .txNavBtn{
+      width: 60px;
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      font-weight: 900;
+      font-size: 32px;
+      line-height: 1;
+    }
+    .txNavBtn:hover{ background: var(--hover); }
+    .txNavBtn:disabled{ opacity:.45; cursor: default; }
+    #txMatchCount{
+      min-width: 98px;
+      text-align: right;
+      color: #404040;
+      font-variant-numeric: tabular-nums;
+      font-size: .92rem;
+      user-select:none;
+    }
+    #txContent{
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+      font-size: .92rem;
+      margin: 0;
+    }
+    .txMark{
+      background: rgba(43,124,255,.22);
+      border-radius: 6px;
+      padding: 0 2px;
+    }
+    .txMark.active{
+      background: rgba(245,158,11,.35);
+      box-shadow: 0 0 0 2px rgba(245,158,11,.20);
+    }
+    #txResizeHandle{
+      position:absolute;
+      left: 0;
+      bottom: 0;
+      width: 54px;
+      height: 54px;
+      cursor: nwse-resize;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      touch-action: none;
+      background: linear-gradient(135deg, rgba(43,124,255,.0), rgba(43,124,255,.18));
+      border-top: 1px solid #e2e2e2;
+      border-right: 1px solid #e2e2e2;
+      border-top-right-radius: 18px;
+    }
+    #txResizeHandle svg{ width:22px; height:22px; opacity:.88; }
   </style>
 </head>
 
 <body>
   <div id="scrollArea">
     <div id="appScale">
-      <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
+      <div class="pageTitle"><span>FSP Audio — Birleşik Liste</span></div>
 
       <nav class="navRow" aria-label="Sayfalar">
         <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
@@ -583,81 +713,85 @@
         <a class="navLink" href="https://protokolfsp.github.io/MenschiB/">MenschiB</a>
       </nav>
 
-      <div class="topbar">
-        <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
-        <button id="resetBtn" type="button">Hepsi</button>
+      <div id="stickyBar">
+        <div class="topbar">
+          <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
+          <button id="resetBtn" type="button">Hepsi</button>
 
-        <div class="zoomWrap" aria-label="Görünüm">
-          <button id="zoomOutBtn" class="zoomBtn zoomOut" type="button" aria-label="Küçült">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="11" cy="11" r="6"></circle>
-              <path d="M20 20l-3.5-3.5"></path>
-              <path d="M8.5 11h5"></path>
-            </svg>
-          </button>
+          <div class="zoomWrap" aria-label="Görünüm">
+            <button id="zoomOutBtn" class="zoomBtn zoomOut" type="button" aria-label="Küçült">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6"></circle>
+                <path d="M20 20l-3.5-3.5"></path>
+                <path d="M8.5 11h5"></path>
+              </svg>
+            </button>
 
-          <button id="zoomInBtn" class="zoomBtn zoomIn" type="button" aria-label="Büyüt">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="11" cy="11" r="6"></circle>
-              <path d="M20 20l-3.5-3.5"></path>
-              <path d="M11 8.5v5"></path>
-              <path d="M8.5 11h5"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div id="meta">Görünən: 0 / Toplam: 0</div>
-
-      <div class="headerRow">
-        <div class="colTitle">
-          <div class="titleHead">
-            <span>Kayıt</span>
-            <button id="sortDateBtn" class="sortBtn" type="button" title="Tarihe göre sırala (dosya sonu)">
-              <svg id="sortDateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+            <button id="zoomInBtn" class="zoomBtn zoomIn" type="button" aria-label="Büyüt">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6"></circle>
+                <path d="M20 20l-3.5-3.5"></path>
+                <path d="M11 8.5v5"></path>
+                <path d="M8.5 11h5"></path>
+              </svg>
             </button>
           </div>
         </div>
 
-        <div class="colDur" style="text-align:right;">
-          <div class="durHead">
-            <span>Süre</span>
-            <button id="sortDurBtn" class="sortBtn" type="button" title="Süreye göre sırala">
-              <svg id="sortDurIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+        <div id="meta">Görünən: 0 / Toplam: 0</div>
+
+        <div class="headerRow">
+          <div class="colTitle">
+            <div class="titleHead">
+              <span>Kayıt</span>
+              <button id="sortDateBtn" class="sortBtn" type="button" title="Tarihe göre sırala (dosya sonu)">
+                <svg id="sortDateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="colDur" style="text-align:right;">
+            <div class="durHead">
+              <span>Süre</span>
+              <button id="sortDurBtn" class="sortBtn" type="button" title="Süreye göre sırala">
+                <svg id="sortDurIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="headIconCell">
+            <button id="sortPlayBtn" class="sortBtn" type="button" title="Dinlenme sayısına göre sırala">
+              <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path class="iconBlue" d="M3 10v4c0 .55.45 1 1 1h3l5 4V5L7 9H4c-.55 0-1 .45-1 1z"/>
+                <path class="iconOrange" d="M16.5 8.5a1 1 0 0 1 1.4.1c1 1.2 1.6 2.7 1.6 4.4s-.6 3.2-1.6 4.4a1 1 0 1 1-1.5-1.3c.7-.9 1.1-2 1.1-3.1s-.4-2.2-1.1-3.1a1 1 0 0 1 .1-1.4z"/>
+              </svg>
+              <svg id="sortPlayIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+            </button>
+          </div>
+
+          <div class="headIconCell">
+            <button id="filterFav" class="filterBtn" title="Favoriler filtrele" type="button" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="headIconCell" aria-hidden="true"></div>
+
+          <div class="headIconCell">
+            <button id="sortDlCountBtn" class="sortBtn" type="button" title="İndirme sayısına göre sırala">
+              <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path class="iconBlue" d="M4 3h12l4 4v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+                <path class="iconOrange" d="M7 3h8v6H7V3zm4 10.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6z"/>
+              </svg>
+              <svg id="sortDlCountIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
             </button>
           </div>
         </div>
-
-        <div class="headIconCell">
-          <button id="sortPlayBtn" class="sortBtn" type="button" title="Dinlenme sayısına göre sırala">
-            <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
-              <path class="iconBlue" d="M3 10v4c0 .55.45 1 1 1h3l5 4V5L7 9H4c-.55 0-1 .45-1 1z"/>
-              <path class="iconOrange" d="M16.5 8.5a1 1 0 0 1 1.4.1c1 1.2 1.6 2.7 1.6 4.4s-.6 3.2-1.6 4.4a1 1 0 1 1-1.5-1.3c.7-.9 1.1-2 1.1-3.1s-.4-2.2-1.1-3.1a1 1 0 0 1 .1-1.4z"/>
-            </svg>
-            <svg id="sortPlayIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
-          </button>
-        </div>
-
-        <div class="headIconCell">
-          <button id="filterFav" class="filterBtn" title="Favoriler filtrele" type="button" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="headIconCell" aria-hidden="true"></div>
-
-        <div class="headIconCell">
-          <button id="sortDlCountBtn" class="sortBtn" type="button" title="İndirme sayısına göre sırala">
-            <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
-              <path class="iconBlue" d="M4 3h12l4 4v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-              <path class="iconOrange" d="M7 3h8v6H7V3zm4 10.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6z"/>
-            </svg>
-            <svg id="sortDlCountIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
-          </button>
-        </div>
       </div>
+
+      <div id="stickyBarPh" aria-hidden="true"></div>
 
       <div id="list"></div>
       <div id="status"></div>
@@ -665,9 +799,18 @@
   </div>
 
   <div id="floatingPlayer" role="region" aria-label="Oynatıcı">
+    <div id="captionsDock" aria-label="Altyazılar">
+      <div id="captions" class="isEmpty" aria-live="polite">Bir kayıt seç...</div>
+    </div>
     <div id="fpHeader" title="Sürükle">
       <div id="fpTitle">Bir kayıt seç...</div>
       <div id="fpHeaderRight">
+        <button id="ccSmallBtn" class="miniBtn ccModeBtn" type="button" title="Altyazı (cc)" aria-pressed="false"><span class="btnMark">cc</span></button>
+        <button id="ccMedBtn" class="miniBtn ccModeBtn" type="button" title="Altyazı (CC)" aria-pressed="false"><span class="btnMark">CC</span></button>
+        <button id="ccXBtn" class="miniBtn ccModeBtn" type="button" title="Altyazı (CCx)" aria-pressed="false"><span class="btnMark">CCx</span></button>
+
+        <button id="fpTxtBtn" class="miniBtn" type="button" title="Transkript (TXT)"><span class="btnMark">TXT</span></button>
+
         <div id="speedWrap" class="speedWrap" aria-label="Hız">
           <button id="slowBtn" class="speedCtlBtn" type="button" title="Yavaşlat (🐢)">🐢</button>
           <div id="speedValue" class="speedValue on" title="Oynatma hızı">1×</div>
@@ -691,25 +834,94 @@
     </div>
   </div>
 
+  <!-- Transcript popup -->
+  <div id="txPanel" role="dialog" aria-label="Transkript" aria-hidden="true">
+    <div id="txHeader">
+      <div id="txTitle">Transkript</div>
+      <div id="txBtns">
+        <button id="txCopyBtn" class="txBtn" type="button" title="Kopyala">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 9h10v10H9z"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Kopyala
+        </button>
+        <button id="txDownloadBtn" class="txBtn" type="button" title="İndir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>
+          </svg>
+          İndir
+        </button>
+        <button id="txSearchBtn" class="txBtn" type="button" title="Ara">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="6"></circle><path d="M20 20l-3.5-3.5"></path>
+          </svg>
+          Ara
+        </button>
+        <button id="txCloseBtn" class="txBtn" type="button" title="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+          </svg>
+          Kapat
+        </button>
+      </div>
+    </div>
+
+    <div id="txBody">
+      <div id="txInfo">—</div>
+
+      <div id="txSearchRow" aria-label="Ara">
+        <input id="txSearchInput" type="text" placeholder="Ara…" />
+        <button id="txPrevMatchBtn" class="txNavBtn" type="button" title="Önceki">‹</button>
+        <button id="txNextMatchBtn" class="txNavBtn" type="button" title="Sonraki">›</button>
+        <div id="txMatchCount" title="Eşleşme">0/0</div>
+      </div>
+
+      <pre id="txContent"></pre>
+    </div>
+
+    <div id="txResizeHandle" title="Resize" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M7 17l10-10"/><path d="M11 17h6v-6"/>
+      </svg>
+    </div>
+  </div>
+
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
   <script>
-    // =========================
-    // SOURCES (All-in-One)
-    // =========================
-    const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
-    const IA_IDENTIFIER_2 = "FSP21_23";
-    const IA_IDENTIFIER_3 = "FSPneu"; // ✅ FSPneu
-    const IA3_BLOCK_PREFIXES = ["Dusseldorf","Düsseldorf","Stuttgart","Reutlingen","Sachsen","Hessen"];
-    const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
+    // ====== CONFIG ======
+    const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25"; // S1
+    const IA_IDENTIFIER_2 = "FSP21_23"; // S2
+    const IA_IDENTIFIER_3 = "FSPneu";   // S3
 
-    // COUNTERS
+    const SRC_S1 = "S1";
+    const SRC_S2 = "S2";
+    const SRC_S3 = "S3";
+
+    // S3 şehir/eyalet filtreleri
+    const IA3_BLOCK_PREFIXES = ["Dusseldorf","Düsseldorf","Stuttgart","Rheutlingen","Reutlingen","Sachsen","Hessen"];
+
+    const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
     const COUNTER_API = "https://fspdlcounter.protokolfsp.workers.dev";
 
-    // CACHE CONTROL
-    const FORCE_REFRESH = new URLSearchParams(location.search).has("refresh"); // ?refresh=1
-    const S1_CACHE_TTL_MS = 72 * 60 * 60 * 1000; // 72 saat
-    const S2_NEVER_CHANGES = true; // FSP21_23: statik
+    const SRT_BASES = [
+      "https://protokolfsp.github.io/FSPtranskript/transcripts/",
+      "https://raw.githubusercontent.com/protokolFSP/FSPtranskript/main/transcripts/",
+      "https://cdn.jsdelivr.net/gh/protokolFSP/FSPtranskript@main/transcripts/"
+    ];
+    const TXT_BASES = SRT_BASES;
+
+    // Klasörler (screenshot’a göre)
+    const TX_SUBDIR_S2 = "FSP21_23";
+    const TX_SUBDIR_S3 = "FSPab26";
+
+    const FORCE_REFRESH = new URLSearchParams(location.search).has("refresh");
+    const SRT_DEBUG = new URLSearchParams(location.search).has("srtdebug");
+
+    const CAPTION_MAX_LINES = 6;
+    const CAPTION_TARGET_LINES = 3;
+    const CAPTION_MAX_LINES_9 = 9;
+    const CAPTION_MAX_LINES_13 = 13;
 
     const IS_SAFARI = (() => {
       const ua = navigator.userAgent || "";
@@ -719,14 +931,15 @@
       return isApple && hasSafari && notChromeLike;
     })();
 
-    // =========================
-    // DOM
-    // =========================
+    // ====== DOM ======
     const scrollArea = document.getElementById("scrollArea");
     const listEl   = document.getElementById("list");
     const searchEl = document.getElementById("search");
     const metaEl   = document.getElementById("meta");
     const statusEl = document.getElementById("status");
+
+    const stickyBar = document.getElementById("stickyBar");
+    const stickyPh  = document.getElementById("stickyBarPh");
 
     const appScaleEl = document.getElementById("appScale");
     const zoomOutBtn = document.getElementById("zoomOutBtn");
@@ -744,6 +957,13 @@
     const fastBtn = document.getElementById("fastBtn");
     const speedValueEl = document.getElementById("speedValue");
 
+    const ccSmallBtn = document.getElementById("ccSmallBtn");
+    const ccMedBtn   = document.getElementById("ccMedBtn");
+    const ccXBtn     = document.getElementById("ccXBtn");
+    const fpTxtBtn   = document.getElementById("fpTxtBtn");
+
+    const captionsEl = document.getElementById("captions");
+
     const filterFavBtn  = document.getElementById("filterFav");
     const resetBtn      = document.getElementById("resetBtn");
 
@@ -751,31 +971,165 @@
     const sortDurIcon = document.getElementById("sortDurIcon");
     const sortDateBtn  = document.getElementById("sortDateBtn");
     const sortDateIcon = document.getElementById("sortDateIcon");
-
     const sortPlayBtn  = document.getElementById("sortPlayBtn");
     const sortPlayIcon = document.getElementById("sortPlayIcon");
     const sortDlCountBtn  = document.getElementById("sortDlCountBtn");
     const sortDlCountIcon = document.getElementById("sortDlCountIcon");
 
+    const txPanel = document.getElementById("txPanel");
+    const txHeader = document.getElementById("txHeader");
+    const txResizeHandle = document.getElementById("txResizeHandle");
+    const txTitleEl = document.getElementById("txTitle");
+    const txInfoEl = document.getElementById("txInfo");
+    const txContentEl = document.getElementById("txContent");
+    const txBodyEl = document.getElementById("txBody");
+
+    const txCopyBtn = document.getElementById("txCopyBtn");
+    const txDownloadBtn = document.getElementById("txDownloadBtn");
+    const txSearchBtn = document.getElementById("txSearchBtn");
+    const txCloseBtn = document.getElementById("txCloseBtn");
+
+    const txSearchRow = document.getElementById("txSearchRow");
+    const txSearchInput = document.getElementById("txSearchInput");
+    const txPrevMatchBtn = document.getElementById("txPrevMatchBtn");
+    const txNextMatchBtn = document.getElementById("txNextMatchBtn");
+    const txMatchCountEl = document.getElementById("txMatchCount");
+
     const plyr = new Plyr(playerEl, {
-      seekTime: 5,
+      seekTime: 6.5,
       controls: ["rewind","play","fast-forward","progress","current-time","duration","mute","volume"]
     });
 
-    // =========================
-    // COUNTERS (play/download)
-    // =========================
-    let globalPlayCounts = {};
-    let globalDownloadCounts = {};
+    // ====== STORAGE ======
+    const LS = {
+      favs:  "fspAll.favs.v1",
+      pos:   "fspAll.fp.pos.v1",
+      durs:  "fspAll.durs.v1",
+      sortMode: "fspAll.sort.mode.v2",
+      sortDirDur: "fspAll.sort.dur.dir.v1",
+      sortDirDate: "fspAll.sort.date.dir.v1",
+      sortDirPlay: "fspAll.sort.play.dir.v1",
+      sortDirDl:   "fspAll.sort.dl.dir.v1",
+      speed: "fspAll.speed.v1",
+      zoom:  "fspAll.ui.zoom.v1",
+      captionsMode: "fspAll.captions.mode.v1",
+      itemsCache:   "fspAll.items.cache.v2",
+      itemsCacheAt: "fspAll.items.cache.at.v1",
+      uiState:      "fspAll.ui.state.v1",
+      txSize: "fspAll.tx.size.v1",
+      txPos:  "fspAll.tx.pos.v1"
+    };
 
-    let counterStatus = "";
-    let lastCountsOkAt = 0;
+    const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
+    const saveMap = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+    const loadAny = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
+    const saveAny = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+    let favs = loadMap(LS.favs);
+    let durs = loadMap(LS.durs);
+    let filterFav = false;
+
+    let items = [];
+    let activeId = null;
+    let selectedId = null;
+
+    // ====== helpers ======
+    function escHtml(s){
+      return (s ?? "").toString()
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+    function foldTR(s){
+      s = (s || "").toString();
+      s = s.toLocaleLowerCase("tr");
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      s = s.replace(/ı/g, "i");
+      s = s.replace(/\s+/g, " ").trim();
+      return s;
+    }
+    function decodeURIComponentSafe(s){ try { return decodeURIComponent(s); } catch { return s; } }
+    function highlightDisease(title){
+      const raw = (title ?? "").toString();
+      const m = raw.match(/\b(dr|fr)\b\.?/i);
+      if (!m || m.index == null) return escHtml(raw);
+      const i = m.index;
+      const leftRaw = raw.slice(0, i);
+      const leftTrim = leftRaw.trimEnd();
+      if (!leftTrim.trim()) return escHtml(raw);
+      const trailing = leftRaw.slice(leftTrim.length);
+      return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
+    }
+    function guessMime(url){
+      try{
+        const p = new URL(url).pathname.toLowerCase();
+        if (p.endsWith(".mp3")) return "audio/mpeg";
+        if (p.endsWith(".m4a")) return "audio/mp4";
+      }catch{}
+      return "audio/*";
+    }
+    function fmtDur(sec){
+      if (!Number.isFinite(sec) || sec <= 0) return "—";
+      sec = Math.round(sec);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      const mm = String(m).padStart(2, "0");
+      const ss = String(s).padStart(2, "0");
+      if (h > 0) return `${h}:${mm}:${ss}`;
+      return `${m}:${ss}`;
+    }
+
+    function ia3IsBlockedByPrefix(fileName){
+      let base = (fileName || "").toString();
+      base = base.split("/").pop() || base;
+      base = decodeURIComponentSafe(base);
+      base = base.replace(/\.(m4a|mp3)$/i, "").trim();
+      base = base.replace(/^A[\s_-]+/i, "").trim();
+      const folded = foldTR(base);
+      for (const p of IA3_BLOCK_PREFIXES){
+        const c = foldTR(p);
+        if (!c) continue;
+        if (folded.startsWith(c)){
+          const next = folded.slice(c.length, c.length + 1);
+          if (!next || /[\s\-_0-9.:]/.test(next)) return true;
+        }
+      }
+      return false;
+    }
+
+    function parseEndDate(item){
+      const raw0 = (item.name || item.file || item.title || "").toString();
+      let s;
+      try { s = decodeURIComponent(raw0.split("/").pop() || raw0); } catch { s = raw0; }
+      s = s.replace(/\.(mp3|m4a|wav|aac|ogg|flac)$/i, "").trim();
+      s = s.normalize("NFKC").replace(/\u00A0/g, " ").trim();
+      s = s.trim().replace(/[)\]\s]+$/g, "").trim();
+      const m = s.match(/(\d{1,2})[.\-_\u00B7](\d{1,2})[.\-_\u00B7](\d{2}|\d{4})\s*$/);
+      if (!m) return null;
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      let yy = Number(m[3]);
+      if (yy < 100) yy = 2000 + yy;
+      if (!(dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12)) return null;
+      const t = Date.UTC(yy, mm - 1, dd);
+      if (!Number.isFinite(t)) return null;
+      const d = new Date(t);
+      if (d.getUTCFullYear() !== yy || (d.getUTCMonth() + 1) !== mm || d.getUTCDate() !== dd) return null;
+      return t;
+    }
 
     function chunk(arr, size){
       const out = [];
       for (let i=0; i<arr.length; i+=size) out.push(arr.slice(i, i+size));
       return out;
     }
+
+    // ====== counters ======
+    let globalPlayCounts = {};
+    let globalDownloadCounts = {};
 
     async function fetchCounts(type, ids){
       if (!ids.length) return {};
@@ -787,14 +1141,11 @@
           headers: { "content-type": IS_SAFARI ? "text/plain;charset=utf-8" : "application/json" },
           body: JSON.stringify({ type, ids })
         });
-        if (!res.ok) throw new Error("HTTP " + res.status);
+        if (!res.ok) throw new Error("counts failed");
         const j = await res.json();
-        if (!j || j.ok !== true || !j.counts) throw new Error("bad json");
-        lastCountsOkAt = Date.now();
-        counterStatus = "";
-        return j.counts || {};
+        return (j && j.counts) ? j.counts : {};
       }catch{
-        return null; // kritik: mevcut sayacı silme
+        return {};
       }
     }
 
@@ -806,51 +1157,24 @@
 
     async function refreshAllCounts(){
       if (!items.length) return;
-
       const ids = items.map(it => it.id);
       const parts = chunk(ids, 200);
-
-      const playAll = { ...globalPlayCounts };
-      const dlAll   = { ...globalDownloadCounts };
-
-      let anyOk = false;
+      const playAll = {};
+      const dlAll = {};
 
       for (const part of parts){
-        const [p, d] = await Promise.all([
-          fetchCounts("play", part),
-          fetchCounts("download", part),
-        ]);
-
-        if (p && typeof p === "object"){
-          anyOk = true;
-          for (const id of part) playAll[id] = Number(p[id]) || 0;
-        }
-        if (d && typeof d === "object"){
-          anyOk = true;
-          for (const id of part) dlAll[id] = Number(d[id]) || 0;
-        }
+        const [p, d] = await Promise.all([fetchCounts("play", part), fetchCounts("download", part)]);
+        Object.assign(playAll, p);
+        Object.assign(dlAll, d);
       }
-
-      if (anyOk){
-        globalPlayCounts = playAll;
-        globalDownloadCounts = dlAll;
-        counterStatus = "";
-      } else {
-        counterStatus = "Sayaç bağlantısı geçici olarak yok (değerler korunuyor).";
-      }
-
+      if (Object.keys(playAll).length) globalPlayCounts = playAll;
+      if (Object.keys(dlAll).length) globalDownloadCounts = dlAll;
       render();
     }
 
     function sendHit(type, it){
       try{
-        const payload = {
-          type,
-          id: it?.id || "",
-          title: it?.title || "",
-          file_name: (it?.name || it?.file || "").split("/").pop() || ""
-        };
-
+        const payload = { type, id: it?.id || "", title: it?.title || "", file_name: (it?.name || "").split("/").pop() || "" };
         const url = COUNTER_API + "/hit";
         const data = JSON.stringify(payload);
 
@@ -858,7 +1182,6 @@
           const ok = navigator.sendBeacon(url, new Blob([data], { type: "text/plain;charset=utf-8" }));
           if (ok) return;
         }
-
         fetch(url, {
           method: "POST",
           mode: "cors",
@@ -872,22 +1195,15 @@
 
     function bumpLocalGlobalCount(type, id){
       if (!id) return;
-      if (type === "play"){
-        globalPlayCounts[id] = (Number(globalPlayCounts[id]) || 0) + 1;
-      } else {
-        globalDownloadCounts[id] = (Number(globalDownloadCounts[id]) || 0) + 1;
-      }
+      if (type === "play") globalPlayCounts[id] = (Number(globalPlayCounts[id]) || 0) + 1;
+      else globalDownloadCounts[id] = (Number(globalDownloadCounts[id]) || 0) + 1;
     }
 
-    // Play sayımı: gerçekten "playing" olunca 1 kez
     let playGate = { id: null, armed: false, sent: false };
-    function armPlayGate(it){
-      playGate = { id: it?.id || null, armed: true, sent: false };
-    }
+    function armPlayGate(it){ playGate = { id: it?.id || null, armed: true, sent: false }; }
     function trySendPlayOnPlaying(){
       if (!playGate.armed || playGate.sent || !playGate.id) return;
       if (!playerEl || playerEl.paused) return;
-
       playGate.sent = true;
       const it = items.find(x => x.id === playGate.id) || { id: playGate.id, title:"", name:"" };
       bumpLocalGlobalCount("play", it.id);
@@ -897,72 +1213,19 @@
     }
     playerEl.addEventListener("playing", trySendPlayOnPlaying);
 
-    // =========================
-    // LOCAL STORAGE
-    // =========================
-    const LS = {
-      favs:  "fsp3.favs.v2",
-      pos:   "fsp3.fp.pos.v2",
-      durs:  "fsp3.durs.v2",
-      sortMode: "fsp3.sort.mode.v2",
-      sortDirDur: "fsp3.sort.dur.dir.v1",
-      sortDirDate: "fsp3.sort.date.dir.v1",
-      sortDirPlay: "fsp3.sort.play.dir.v1",
-      sortDirDl:   "fsp3.sort.dl.dir.v1",
-      speed: "fsp3.speed.v1",
-      zoom:  "fsp3.ui.zoom.v1",
-
-      // SOURCE LIST CACHE (All-in-One)
-      itemsS1:   "fsp3.items.S1.v1",
-      itemsS1At: "fsp3.items.S1.at.v1",
-      itemsS2:   "fsp3.items.S2.v1",
-      itemsS2At: "fsp3.items.S2.at.v1",
-    };
-
-    const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
-    const saveMap = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
-    function loadAny(k){
-      try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; }
-    }
-    function saveAny(k, v){
-      localStorage.setItem(k, JSON.stringify(v));
-    }
-    function loadAt(k){
-      const n = Number(localStorage.getItem(k) || "0");
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    let favs  = loadMap(LS.favs);
-    let durs  = loadMap(LS.durs);
-
-    let filterFav  = false;
-
-    let items = [];
-    let activeId = null;
-
+    // ====== sort state ======
+    const ALLOWED_SORT = new Set(["title","date","dur","play","download"]);
     let sortMode = localStorage.getItem(LS.sortMode) || "date";
+    if (!ALLOWED_SORT.has(sortMode)) sortMode = "date";
     let durSortDir  = (localStorage.getItem(LS.sortDirDur) === "desc") ? "desc" : "asc";
     let dateSortDir = (localStorage.getItem(LS.sortDirDate) === "asc") ? "asc" : "desc";
     let playSortDir = (localStorage.getItem(LS.sortDirPlay) === "asc") ? "asc" : "desc";
     let dlSortDir   = (localStorage.getItem(LS.sortDirDl) === "asc") ? "asc" : "desc";
 
-    if (!localStorage.getItem(LS.sortMode)) localStorage.setItem(LS.sortMode, sortMode);
-    if (!localStorage.getItem(LS.sortDirDate)) localStorage.setItem(LS.sortDirDate, dateSortDir);
-    if (!localStorage.getItem(LS.sortDirPlay)) localStorage.setItem(LS.sortDirPlay, playSortDir);
-    if (!localStorage.getItem(LS.sortDirDl)) localStorage.setItem(LS.sortDirDl, dlSortDir);
-
-    // =========================
-    // SPEED
-    // =========================
+    // ====== speed ======
     const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75, 2.0, 2.25];
     let speedIndex = SPEEDS.indexOf(1);
-
-    function fmtSpeed(v){
-      const s = (Math.round(v * 100) / 100).toString();
-      return s.replace(/\.0+$/,"") + "×";
-    }
-
+    function fmtSpeed(v){ return (Math.round(v * 100) / 100).toString().replace(/\.0+$/,"") + "×"; }
     function setSpeedUI(v){
       speedValueEl.textContent = fmtSpeed(v);
       speedValueEl.classList.add("on");
@@ -971,7 +1234,6 @@
       slowBtn.style.opacity = slowBtn.disabled ? 0.45 : 1;
       fastBtn.style.opacity = fastBtn.disabled ? 0.45 : 1;
     }
-
     function applySpeedByIndex(idx){
       speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, idx));
       const v = SPEEDS[speedIndex];
@@ -979,7 +1241,6 @@
       localStorage.setItem(LS.speed, String(v));
       setSpeedUI(v);
     }
-
     function restoreSpeed(){
       const saved = Number(localStorage.getItem(LS.speed) || "1");
       if (Number.isFinite(saved)){
@@ -989,37 +1250,34 @@
         applySpeedByIndex(SPEEDS.indexOf(1));
       }
     }
-
     slowBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex - 1); });
     fastBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex + 1); });
 
-    // =========================
-    // ZOOM
-    // =========================
+    // ====== zoom ======
     const ZOOMS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2];
     let zoomIndex = ZOOMS.indexOf(1);
     let uiScale = 1;
     let useTransformScale = false;
 
-    function setZoomUI(v){
-      const pct = Math.round(v * 100) + "%";
+    function getViewportWH(){
+      const vv = window.visualViewport;
+      const vw = (vv && vv.width)  ? vv.width  : window.innerWidth;
+      const vh = (vv && vv.height) ? vv.height : window.innerHeight;
+      return { vw, vh };
+    }
+    function toLayoutPx(v){ return useTransformScale ? (v / uiScale) : v; }
+
+    function setZoomUI(){
       zoomOutBtn.disabled = (zoomIndex <= 0);
       zoomInBtn.disabled  = (zoomIndex >= ZOOMS.length - 1);
-
       zoomOutBtn.classList.toggle("enabled", !zoomOutBtn.disabled);
       zoomInBtn.classList.toggle("enabled", !zoomInBtn.disabled);
-
-      zoomOutBtn.title = `Küçült (${pct})`;
-      zoomInBtn.title  = `Büyüt (${pct})`;
-      zoomOutBtn.setAttribute("aria-label", `Küçült (${pct})`);
-      zoomInBtn.setAttribute("aria-label", `Büyüt (${pct})`);
     }
 
     function applyZoomByIndex(idx){
       zoomIndex = Math.max(0, Math.min(ZOOMS.length - 1, idx));
       const v = ZOOMS[zoomIndex];
       uiScale = v;
-
       useTransformScale = !(window.CSS && CSS.supports && CSS.supports("zoom", "1"));
 
       if (!useTransformScale){
@@ -1033,8 +1291,8 @@
       }
 
       localStorage.setItem(LS.zoom, String(v));
-      setZoomUI(v);
-      setTimeout(() => clampPlayerToViewport(), 0);
+      setZoomUI();
+      setTimeout(() => { clampPlayerToViewport(); updateSticky(true); }, 0);
     }
 
     function restoreZoom(){
@@ -1047,140 +1305,852 @@
       }
     }
 
-    function resetZoom100(){ applyZoomByIndex(ZOOMS.indexOf(1)); }
-
-    function attachDoubleTapReset(el){
-      el.addEventListener("dblclick", (e) => { e.preventDefault(); resetZoom100(); });
-      let lastTap = 0;
-      el.addEventListener("touchend", (e) => {
-        const now = Date.now();
-        if (now - lastTap < 320){
-          e.preventDefault();
-          resetZoom100();
-          lastTap = 0;
-          return;
-        }
-        lastTap = now;
-      }, { passive: false });
-    }
-
     zoomOutBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex - 1); });
     zoomInBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex + 1); });
-    attachDoubleTapReset(zoomOutBtn);
-    attachDoubleTapReset(zoomInBtn);
 
-    // Search focus -> player sakla
-    function setTypingMode(on){ fp.classList.toggle("hiddenWhileTyping", !!on); }
-    searchEl.addEventListener("focus", () => setTypingMode(true));
-    searchEl.addEventListener("blur",  () => setTypingMode(false));
+    // ====== sticky docking ======
+    let stickyStartTop = null;
+    let stickyDocked = false;
+    let stickyHomeParent = null;
 
-    // =========================
-    // HELPERS
-    // =========================
-    function escHtml(s){
-      return (s ?? "").toString()
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#39;");
+    function measureStickyStartTop(){
+      if (!stickyBar) return;
+      if (stickyDocked) return;
+      const barRect = stickyBar.getBoundingClientRect();
+      const scRect  = scrollArea.getBoundingClientRect();
+      stickyStartTop = (barRect.top - scRect.top) + scrollArea.scrollTop;
     }
 
-    function highlightDisease(title){
-      const raw = (title ?? "").toString();
-      const m = raw.match(/\b(dr|fr)\b\.?/i);
-      if (!m || m.index == null) return escHtml(raw);
-
-      const i = m.index;
-      const leftRaw = raw.slice(0, i);
-      const leftTrim = leftRaw.trimEnd();
-      if (!leftTrim.trim()) return escHtml(raw);
-
-      const trailing = leftRaw.slice(leftTrim.length);
-      return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
+    function getScrollAreaPadding(){
+      const cs = getComputedStyle(scrollArea);
+      const pt = parseFloat(cs.paddingTop) || 0;
+      const pl = parseFloat(cs.paddingLeft) || 0;
+      const pr = parseFloat(cs.paddingRight) || 0;
+      return { pt, pl, pr };
     }
 
-    function foldTR(s){
-      s = (s || "").toString();
-      s = s.toLocaleLowerCase("tr");
-      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      s = s.replace(/ı/g, "i");
-      s = s.replace(/\s+/g, " ").trim();
-      return s;
+    function dockStickyBar(){
+      if (stickyDocked) return;
+      stickyDocked = true;
+      stickyHomeParent = stickyBar.parentNode;
+      stickyPh.style.height = stickyBar.offsetHeight + "px";
+      stickyBar.classList.add("docked");
+      document.body.appendChild(stickyBar);
+      positionDockedStickyBar();
     }
 
-    function guessMime(url){
+    function undockStickyBar(){
+      if (!stickyDocked) return;
+      stickyDocked = false;
+      stickyBar.classList.remove("docked");
+      stickyBar.style.position = "";
+      stickyBar.style.left = "";
+      stickyBar.style.top = "";
+      stickyBar.style.width = "";
+      stickyBar.style.transform = "";
+      stickyBar.style.transformOrigin = "";
+      stickyPh.style.height = "0px";
+      stickyHomeParent.insertBefore(stickyBar, stickyPh);
+      measureStickyStartTop();
+    }
+
+    function positionDockedStickyBar(){
+      if (!stickyDocked) return;
+      const rect = scrollArea.getBoundingClientRect();
+      const pad = getScrollAreaPadding();
+      const left = rect.left + pad.pl;
+      const top  = rect.top + pad.pt;
+      const width = Math.max(260, rect.width - pad.pl - pad.pr);
+
+      stickyBar.style.position = "fixed";
+      stickyBar.style.transformOrigin = "top left";
+
+      if (useTransformScale){
+        stickyBar.style.left = (left / uiScale) + "px";
+        stickyBar.style.top  = (top  / uiScale) + "px";
+        stickyBar.style.width = (width / uiScale) + "px";
+        stickyBar.style.transform = `scale(${uiScale})`;
+      } else {
+        stickyBar.style.left = left + "px";
+        stickyBar.style.top  = top + "px";
+        stickyBar.style.width = width + "px";
+        stickyBar.style.transform = "";
+      }
+    }
+
+    function updateSticky(forceRecalc = false){
+      if (!stickyBar) return;
+      const needDock = (IS_SAFARI || useTransformScale);
+
+      if (forceRecalc && !stickyDocked){
+        requestAnimationFrame(() => measureStickyStartTop());
+      }
+
+      if (!needDock){
+        if (stickyDocked) undockStickyBar();
+        return;
+      }
+
+      if (stickyStartTop == null || forceRecalc){
+        if (stickyDocked) undockStickyBar();
+        measureStickyStartTop();
+      }
+
+      const shouldDock = (scrollArea.scrollTop > (stickyStartTop || 0));
+      if (shouldDock && !stickyDocked) dockStickyBar();
+      if (!shouldDock && stickyDocked) undockStickyBar();
+      if (stickyDocked) positionDockedStickyBar();
+    }
+    scrollArea.addEventListener("scroll", () => updateSticky(false), { passive: true });
+
+    // ====== durations ======
+    const durQueue = [];
+    const durLoading = new Set();
+    let durActive = 0;
+    const DUR_CONCURRENCY = 2;
+    let rerenderTimer = null;
+
+    function scheduleRerender(){
+      if (rerenderTimer) return;
+      rerenderTimer = setTimeout(() => { rerenderTimer = null; render(); }, 120);
+    }
+
+    function requestDuration(it){
+      const id = it.id;
+      if (durs[id] > 0) return;
+      if (durLoading.has(id)) return;
+      durLoading.add(id);
+      durQueue.push(it);
+      pumpDurationQueue();
+    }
+
+    function pumpDurationQueue(){
+      while (durActive < DUR_CONCURRENCY && durQueue.length){
+        const it = durQueue.shift();
+        durActive++;
+        loadDurationFor(it).catch(() => {}).finally(() => {
+          durActive--;
+          pumpDurationQueue();
+        });
+      }
+    }
+
+    function loadDurationFor(it){
+      return new Promise((resolve, reject) => {
+        const a = new Audio();
+        a.preload = "metadata";
+        a.src = it.url;
+
+        let done = false;
+
+        const cleanup = () => {
+          a.removeEventListener("loadedmetadata", onMeta);
+          a.removeEventListener("error", onErr);
+          try { a.src = ""; } catch {}
+        };
+
+        const finish = (ok, err) => {
+          if (done) return;
+          done = true;
+          cleanup();
+          durLoading.delete(it.id);
+          ok ? resolve() : reject(err || new Error("metadata error"));
+        };
+
+        const onMeta = () => {
+          const dur = a.duration;
+          if (Number.isFinite(dur) && dur > 0){
+            durs[it.id] = dur;
+            saveMap(LS.durs, durs);
+            scheduleRerender();
+          }
+          finish(true);
+        };
+
+        const onErr = () => finish(false, new Error("metadata error"));
+
+        a.addEventListener("loadedmetadata", onMeta, { once: true });
+        a.addEventListener("error", onErr, { once: true });
+
+        setTimeout(() => { if (!done) finish(false, new Error("timeout")); }, 12000);
+      });
+    }
+
+    // ====== download ======
+    function makeProxyUrl(fileUrl, filename){
+      const u = DL_PROXY + "?u=" + encodeURIComponent(fileUrl);
+      return filename ? (u + "&f=" + encodeURIComponent(filename)) : u;
+    }
+
+    function clickDownload(href, filename){
+      const a = document.createElement("a");
+      a.href = href;
+      a.rel = "noopener";
+      a.target = "_blank";
+      if (filename) a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function forceDownload(fileUrl, filename){
+      const proxied = makeProxyUrl(fileUrl, filename);
       try{
-        const p = new URL(url).pathname.toLowerCase();
-        if (p.endsWith(".mp3")) return "audio/mpeg";
-        if (p.endsWith(".m4a")) return "audio/mp4";
+        clickDownload(proxied, filename);
+        return;
       }catch{}
-      return "audio/*";
+
+      try{
+        const res = await fetch(proxied, { mode: "cors", cache: "no-store" });
+        if (!res.ok) throw new Error("fetch failed");
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        clickDownload(url, filename);
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }catch{
+        window.location.href = fileUrl;
+      }
     }
 
-    function fmtDur(sec){
-      if (!Number.isFinite(sec) || sec <= 0) return "—";
-      sec = Math.round(sec);
-      const h = Math.floor(sec / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      const s = sec % 60;
-      const mm = String(m).padStart(2, "0");
-      const ss = String(s).padStart(2, "0");
-      if (h > 0) return `${h}:${mm}:${ss}`;
-      return `${m}:${ss}`;
+    function buildDownloadUrl(identifier, name){
+      const parts = (name || "").split("/").map(p => encodeURIComponent(p));
+      return `https://archive.org/download/${identifier}/${parts.join("/")}`;
     }
 
-    function decodeURIComponentSafe(s){
-      try { return decodeURIComponent(s); } catch { return s; }
+    // ====== transcript url routing ======
+    function __ensureSlashEnd(s){ s = String(s || ""); return s.endsWith("/") ? s : (s + "/"); }
+    function __basesWithSubdir(bases, subdir){
+      const sd = String(subdir || "").replace(/^\/+|\/+$/g, "");
+      return (bases || []).map(b => __ensureSlashEnd(b) + sd + "/");
     }
-function ia3IsBlockedByPrefix(fileName){
-  let base = (fileName || "").toString();
-  base = base.split("/").pop() || base;
-  base = decodeURIComponentSafe(base);
-  base = base.replace(/\.(m4a|mp3)$/i, "").trim();
-  base = base.replace(/^A[\s_-]+/i, "").trim(); // A / A_ / A-
+    const __S2_SRT_BASES = __basesWithSubdir(SRT_BASES, TX_SUBDIR_S2);
+    const __S2_TXT_BASES = __basesWithSubdir(TXT_BASES, TX_SUBDIR_S2);
+    const __S3_SRT_BASES = __basesWithSubdir(SRT_BASES, TX_SUBDIR_S3);
+    const __S3_TXT_BASES = __basesWithSubdir(TXT_BASES, TX_SUBDIR_S3);
 
-  const folded = foldTR(base);
-  for (const p of IA3_BLOCK_PREFIXES){
-    const c = foldTR(p);
-    if (!c) continue;
-    if (folded.startsWith(c)){
-      const next = folded.slice(c.length, c.length + 1);
-      if (!next || /[\s\-_0-9.:]/.test(next)) return true;
+    function buildSrtNameCandidates(it){
+      const rawName = (it?.name || "").split("/").pop() || "";
+      const decoded = decodeURIComponentSafe(rawName);
+
+      const baseDecoded = decoded.replace(/\.(m4a|mp3)$/i, ".srt");
+      const baseRaw     = rawName.replace(/\.(m4a|mp3)$/i, ".srt");
+
+      const hasA = /^A\s+/i.test(baseDecoded);
+      const aDecoded = hasA ? baseDecoded : ("A " + baseDecoded);
+      const aRaw     = hasA ? baseRaw     : ("A " + baseRaw);
+      const aUDecoded = hasA ? baseDecoded : ("A_" + baseDecoded);
+      const aURaw     = hasA ? baseRaw     : ("A_" + baseRaw);
+      const aDDecoded = hasA ? baseDecoded : ("A-" + baseDecoded);
+      const aDRaw     = hasA ? baseRaw     : ("A-" + baseRaw);
+
+      const altDecoded  = decoded + ".srt";
+      const altRaw      = rawName + ".srt";
+
+      const seen = new Set();
+      const out = [];
+      for (const n of [baseDecoded, baseRaw, aDecoded, aRaw, aUDecoded, aURaw, aDDecoded, aDRaw, altDecoded, altRaw]){
+        const nn = String(n || "").trim();
+        if (!nn) continue;
+        if (seen.has(nn)) continue;
+        seen.add(nn);
+        out.push(nn);
+      }
+      return out;
     }
-  }
-  return false;
-}
-    function parseEndDate(item){
-      const raw0 = (item.name || item.file || item.title || "").toString();
-      let s;
-      try { s = decodeURIComponent(raw0.split("/").pop() || raw0); } catch { s = raw0; }
 
-      s = s.replace(/\.(mp3|m4a|wav|aac|ogg|flac)$/i, "").trim();
-      s = s.normalize("NFKC").replace(/\u00A0/g, " ").trim();
-      s = s.trim().replace(/[)\]\s]+$/g, "").trim();
+    function buildTxtNameCandidates(it){
+      const rawName = (it?.name || "").split("/").pop() || "";
+      const decoded = decodeURIComponentSafe(rawName);
 
-      const m = s.match(/(\d{1,2})[.\-_\u00B7](\d{1,2})[.\-_\u00B7](\d{2}|\d{4})\s*$/);
+      const baseDecoded = decoded.replace(/\.(m4a|mp3)$/i, ".txt");
+      const baseRaw     = rawName.replace(/\.(m4a|mp3)$/i, ".txt");
+
+      const hasA = /^A\s+/i.test(baseDecoded);
+      const aDecoded  = hasA ? baseDecoded : ("A " + baseDecoded);
+      const aRaw      = hasA ? baseRaw     : ("A " + baseRaw);
+      const aUDecoded = hasA ? baseDecoded : ("A_" + baseDecoded);
+      const aURaw     = hasA ? baseRaw     : ("A_" + baseRaw);
+      const aDDecoded = hasA ? baseDecoded : ("A-" + baseDecoded);
+      const aDRaw     = hasA ? baseRaw     : ("A-" + baseRaw);
+
+      const altDecoded = decoded + ".txt";
+      const altRaw     = rawName + ".txt";
+
+      const seen = new Set();
+      const out = [];
+      for (const n of [baseDecoded, baseRaw, aDecoded, aRaw, aUDecoded, aURaw, aDDecoded, aDRaw, altDecoded, altRaw]){
+        const nn = String(n || "").trim();
+        if (!nn) continue;
+        if (seen.has(nn)) continue;
+        seen.add(nn);
+        out.push(nn);
+      }
+      return out;
+    }
+
+    async function buildSrtUrlsForItem(it){
+      const names = buildSrtNameCandidates(it);
+      const urls = [];
+      const bases = (it?.src === SRC_S2) ? __S2_SRT_BASES : (it?.src === SRC_S3) ? __S3_SRT_BASES : SRT_BASES;
+      for (const name of names){
+        for (const base of bases){
+          urls.push(base + encodeURIComponent(name));
+        }
+      }
+      return { urls, triedNames: names };
+    }
+
+    async function buildTxtUrlsForItem(it){
+      const names = buildTxtNameCandidates(it);
+      const urls = [];
+      const bases = (it?.src === SRC_S2) ? __S2_TXT_BASES : (it?.src === SRC_S3) ? __S3_TXT_BASES : TXT_BASES;
+      for (const name of names){
+        for (const base of bases){
+          urls.push(base + encodeURIComponent(name));
+        }
+      }
+      return { urls, triedNames: names };
+    }
+
+    // ====== captions ======
+    const CAPTION_MODES = ["cc", "CC", "CCx"];
+    function readCaptionMode(){
+      const raw = localStorage.getItem(LS.captionsMode) || "";
+      if (CAPTION_MODES.includes(raw)) return raw;
+      return "cc";
+    }
+    let captionMode = readCaptionMode();
+    const srtCache = new Map();
+    let srtCtrl = null;
+    let activeCues = [];
+    let lastCueIdx = -1;
+
+    function isCaptionsOn(){ return !!captionMode; }
+    function getCaptionMaxLines(){
+      if (captionMode === "CC") return CAPTION_MAX_LINES_9;
+      if (captionMode === "CCx") return CAPTION_MAX_LINES_13;
+      return CAPTION_MAX_LINES;
+    }
+    function getCaptionTargetLines(){
+      if (captionMode === "CC") return CAPTION_MAX_LINES_9;
+      if (captionMode === "CCx") return CAPTION_MAX_LINES_13;
+      return CAPTION_TARGET_LINES;
+    }
+
+    function setCaptionUi(){
+      const setBtn = (btn, active) => {
+        btn.classList.toggle("on", !!active);
+        btn.setAttribute("aria-pressed", String(!!active));
+      };
+      setBtn(ccSmallBtn, captionMode === "cc");
+      setBtn(ccMedBtn,   captionMode === "CC");
+      setBtn(ccXBtn,     captionMode === "CCx");
+
+      const on = isCaptionsOn();
+      captionsEl.classList.toggle("hidden", !on);
+      captionsEl.style.setProperty("--capLines", String(getCaptionMaxLines()));
+      if (!on){
+        captionsEl.innerHTML = "";
+        captionsEl.classList.add("isEmpty");
+      } else if (!captionsEl.innerHTML){
+        captionsEl.textContent = "…";
+        captionsEl.classList.add("isEmpty");
+      }
+      setTimeout(() => clampPlayerToViewport(), 0);
+    }
+
+    function stripSrtTags(s){ return (s || "").toString().replace(/<[^>]+>/g, ""); }
+    function srtTimeToSec(raw){
+      const s = String(raw || "").trim().replace(",", ".");
+      const m = s.match(/^(\d{1,2}):(\d{2}):(\d{2})(\.\d+)?$/);
       if (!m) return null;
-
-      const dd = Number(m[1]);
-      const mm = Number(m[2]);
-      let yy = Number(m[3]);
-      if (yy < 100) yy = 2000 + yy;
-      if (!(dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12)) return null;
-
-      const t = Date.UTC(yy, mm - 1, dd);
-      if (!Number.isFinite(t)) return null;
-
-      const d = new Date(t);
-      if (d.getUTCFullYear() !== yy || (d.getUTCMonth() + 1) !== mm || d.getUTCDate() !== dd) return null;
-      return t;
+      const hh = Number(m[1]), mm = Number(m[2]), ss = Number(m[3]);
+      const frac = Number(m[4] || "0");
+      if (![hh,mm,ss,frac].every(Number.isFinite)) return null;
+      return hh * 3600 + mm * 60 + ss + frac;
     }
 
+    function parseSrtToCues(srtText){
+      let t = (srtText || "").replace(/^\uFEFF/, "");
+      t = t.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      const blocks = t.split(/\n{2,}/g);
+
+      const cues = [];
+      for (const block of blocks){
+        const lines = block.split("\n").map(x => x.trimEnd()).filter(x => x.trim().length > 0);
+        if (!lines.length) continue;
+
+        let timeIdx = 0;
+        if (/^\d+$/.test(lines[0].trim()) && lines.length >= 2) timeIdx = 1;
+
+        const timeLine = lines[timeIdx] || "";
+        const tm = timeLine.match(/(.+?)\s*-->\s*(.+)/);
+        if (!tm) continue;
+
+        const start = srtTimeToSec(tm[1]);
+        const end = srtTimeToSec((tm[2].split(/\s+/)[0]) || "");
+        if (start == null || end == null || !(end > start)) continue;
+
+        const text = stripSrtTags(lines.slice(timeIdx + 1).join("\n")).trim();
+        if (!text) continue;
+
+        cues.push({ start, end, text });
+      }
+
+      cues.sort((a,b) => a.start - b.start);
+      return cues;
+    }
+
+    function findCueIdx(cues, t){
+      if (!cues.length) return -1;
+      let lo = 0, hi = cues.length - 1;
+      while (lo <= hi){
+        const mid = (lo + hi) >> 1;
+        const c = cues[mid];
+        if (t < c.start) hi = mid - 1;
+        else if (t >= c.end) lo = mid + 1;
+        else return mid;
+      }
+      return -1;
+    }
+
+    function splitCaptionLines(text){
+      const t = (text || "").toString().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      return t.split("\n").map(l => l.trimEnd()).filter(l => l.trim().length > 0);
+    }
+
+    function countLinesText(text){ return splitCaptionLines(text).length; }
+
+    function composeCaptionParts(cues, idx){
+      if (!cues || idx < 0 || idx >= cues.length) return [];
+
+      const parts = [];
+      const target = getCaptionTargetLines();
+      const wide = getCaptionMaxLines() > CAPTION_MAX_LINES;
+
+      if (wide){
+        const preTarget = Math.max(2, Math.floor(target / 3));
+        let preLines = 0;
+        let p = idx - 1;
+        const stack = [];
+        while (p >= 0 && preLines < preTarget){
+          const c = cues[p];
+          const tt = c?.text || "";
+          const n = countLinesText(tt);
+          if (n > 0){
+            stack.push({ isActive: false, text: tt, start: c.start, end: c.end });
+            preLines += n;
+          }
+          p--;
+        }
+        stack.reverse().forEach(x => parts.push(x));
+      } else if (idx > 0){
+        const c = cues[idx - 1];
+        parts.push({ isActive: false, text: c?.text || "", start: c.start, end: c.end });
+      }
+
+      {
+        const c = cues[idx];
+        parts.push({ isActive: true, text: c?.text || "", start: c.start, end: c.end });
+      }
+
+      let total = parts.reduce((a,p) => a + countLinesText(p.text), 0);
+      let nidx = idx + 1;
+
+      while (total < target && nidx < cues.length){
+        const c = cues[nidx];
+        const tt = c?.text || "";
+        const n = countLinesText(tt);
+        if (n > 0){
+          parts.push({ isActive: false, text: tt, start: c.start, end: c.end });
+          total += n;
+        }
+        nidx++;
+      }
+
+      return parts;
+    }
+
+    function trimLinesAroundActive(lines, maxLines){
+      if (lines.length <= maxLines) return { lines, activeStart: -1, activeEnd: -1 };
+
+      let activeStart = lines.findIndex(l => l.isActive);
+      let activeEnd = lines.length - 1 - [...lines].reverse().findIndex(l => l.isActive);
+      if (activeStart < 0) activeStart = activeEnd = Math.floor(lines.length / 2);
+
+      let start = 0;
+      let end = lines.length - 1;
+
+      while ((end - start + 1) > maxLines){
+        const distTop = activeStart - start;
+        const distBot = end - activeEnd;
+        if (distTop > distBot) start += 1;
+        else end -= 1;
+      }
+
+      const sliced = lines.slice(start, end + 1);
+      const newActiveStart = Math.max(0, activeStart - start);
+      const newActiveEnd = Math.max(newActiveStart, activeEnd - start);
+
+      return { lines: sliced, activeStart: newActiveStart, activeEnd: newActiveEnd };
+    }
+
+    // segment replay
+    let segEndTime = null;
+    let segResumeAfter = false;
+    let segResumeTime = null;
+
+    function armSegmentEnd(end, resumeAfter, resumeTime){
+      segEndTime = (Number.isFinite(end) ? end : null);
+      segResumeAfter = !!resumeAfter;
+      segResumeTime = (Number.isFinite(resumeTime) ? resumeTime : null);
+    }
+
+    function maybeStopAtSegmentEnd(){
+      if (segEndTime == null) return;
+      const t = Number(playerEl.currentTime) || 0;
+      if (t < (segEndTime - 0.03)) return;
+
+      const resumeAfter = segResumeAfter;
+      const resumeTime = segResumeTime;
+
+      segEndTime = null;
+      segResumeAfter = false;
+      segResumeTime = null;
+
+      if (resumeAfter){
+        try{
+          const dur = Number(playerEl.duration);
+          const target = Number.isFinite(resumeTime) ? resumeTime : (t + 0.01);
+          const safeTarget = Number.isFinite(dur) && dur > 0
+            ? Math.min(Math.max(0, target), Math.max(0, dur - 0.05))
+            : Math.max(0, target);
+
+          playerEl.currentTime = safeTarget;
+          const p = plyr.play();
+          if (p && typeof p.catch === "function") p.catch(()=>{});
+          return;
+        }catch{}
+      }
+      try{ plyr.pause(); }catch{}
+    }
+    playerEl.addEventListener("timeupdate", maybeStopAtSegmentEnd);
+
+    function playSegment(start, end){
+      if (!Number.isFinite(start) || !Number.isFinite(end) || !(end > start)) return;
+      const resumeAfter = !playerEl.paused;
+      const resumeTime = end + 0.01;
+      try{
+        armSegmentEnd(end, resumeAfter, resumeTime);
+        playerEl.currentTime = Math.max(0, start + 0.01);
+        const p = plyr.play();
+        if (p && typeof p.catch === "function") p.catch(()=>{});
+      }catch{}
+    }
+
+    function renderCaptionLines(lines){
+      if (!isCaptionsOn()) { captionsEl.innerHTML = ""; return; }
+      const maxLines = getCaptionMaxLines();
+      captionsEl.style.setProperty("--capLines", String(maxLines));
+      const { lines: trimmed, activeStart, activeEnd } = trimLinesAroundActive(lines, maxLines);
+
+      const out = [];
+      for (let i = 0; i < trimmed.length; i++){
+        const ln = trimmed[i];
+        const isActive = !!ln.isActive;
+
+        let dist = 0;
+        if (!isActive){
+          if (i < activeStart) dist = activeStart - i;
+          else if (i > activeEnd) dist = i - activeEnd;
+          else dist = 1;
+        }
+
+        const opacity = isActive ? 1 : Math.max(0.20, 0.92 - (dist * 0.12));
+        const weight = isActive ? 750 : 500;
+
+        const ds = Number.isFinite(ln.start) ? ` data-start="${ln.start}"` : "";
+        const de = Number.isFinite(ln.end) ? ` data-end="${ln.end}"` : "";
+
+        out.push(`<span class="capLine" style="opacity:${opacity.toFixed(2)};font-weight:${weight}"${ds}${de}>${escHtml(ln.text)}</span>`);
+      }
+
+      const html = out.join("<br>");
+      captionsEl.innerHTML = html || "…";
+      captionsEl.classList.toggle("isEmpty", !html);
+      setTimeout(() => clampPlayerToViewport(), 0);
+    }
+
+    function renderCaptionInfo(text){
+      if (!isCaptionsOn()) { captionsEl.innerHTML = ""; return; }
+      captionsEl.textContent = text || "…";
+      captionsEl.classList.add("isEmpty");
+      setTimeout(() => clampPlayerToViewport(), 0);
+    }
+
+    function onCaptionsTimeupdate(){
+      if (!isCaptionsOn()) return;
+      if (!activeCues.length) return;
+
+      const t = Number(playerEl?.currentTime) || 0;
+      const idx = findCueIdx(activeCues, t);
+
+      if (idx === -1){
+        if (lastCueIdx === -1) renderCaptionInfo("…");
+        return;
+      }
+
+      if (idx === lastCueIdx) return;
+      lastCueIdx = idx;
+
+      const parts = composeCaptionParts(activeCues, idx);
+      const flat = [];
+      for (const p of parts){
+        for (const line of splitCaptionLines(p.text)){
+          flat.push({ text: line, isActive: !!p.isActive, start: p.start, end: p.end });
+        }
+      }
+      renderCaptionLines(flat);
+    }
+    playerEl.addEventListener("timeupdate", onCaptionsTimeupdate);
+
+    captionsEl.addEventListener("click", (e) => {
+      if (!isCaptionsOn()) return;
+      if (!activeCues.length) return;
+      const span = e.target && e.target.closest ? e.target.closest(".capLine") : null;
+      if (!span) return;
+      const s = Number(span.getAttribute("data-start"));
+      const en = Number(span.getAttribute("data-end"));
+      if (Number.isFinite(s) && Number.isFinite(en) && en > s){
+        playSegment(s, en);
+      }
+    });
+
+    async function loadSrtForItem(it){
+      activeCues = [];
+      lastCueIdx = -1;
+
+      if (!isCaptionsOn()) return renderCaptionInfo("");
+      if (!it) return renderCaptionInfo("Bir kayıt seç...");
+
+      const cached = srtCache.get(it.id);
+      if (cached){
+        activeCues = cached;
+        renderCaptionInfo("…");
+        return onCaptionsTimeupdate();
+      }
+
+      renderCaptionInfo("Altyazı yükleniyor…");
+
+      try { if (srtCtrl) srtCtrl.abort(); } catch {}
+      srtCtrl = new AbortController();
+
+      const built = await buildSrtUrlsForItem(it);
+      const urls = built.urls;
+      const triedNames = built.triedNames || [];
+      let lastUrl = urls[0] || "";
+
+      try{
+        let cues = null;
+        for (const u of urls){
+          lastUrl = u;
+          const res = await fetch(u, { cache: "no-store", signal: srtCtrl.signal });
+          if (!res.ok) continue;
+          const body = await res.text();
+          const parsed = parseSrtToCues(body);
+          if (parsed && parsed.length){ cues = parsed; break; }
+        }
+        if (!cues) throw new Error("srt not found");
+
+        srtCache.set(it.id, cues);
+        activeCues = cues;
+        renderCaptionInfo("…");
+        onCaptionsTimeupdate();
+      }catch(err){
+        if (err && err.name === "AbortError") return;
+        if (SRT_DEBUG){
+          renderCaptionInfo("SRT yok. Denenen isimler: " + (triedNames.join(" | ") || "-") + "\nSon URL: " + lastUrl);
+        } else {
+          renderCaptionInfo("Bu kayıtta altyazı yok.");
+        }
+      }
+    }
+
+    function setModeOrToggle(nextMode){
+      if (captionMode === nextMode){
+        captionMode = null;
+        localStorage.setItem(LS.captionsMode, "");
+      } else {
+        captionMode = nextMode;
+        localStorage.setItem(LS.captionsMode, nextMode);
+      }
+      setCaptionUi();
+      const it = items.find(x => x.id === activeId);
+      if (isCaptionsOn() && it) loadSrtForItem(it).catch(()=>{});
+    }
+
+    ccSmallBtn.addEventListener("click", (e) => { e.stopPropagation(); setModeOrToggle("cc"); });
+    ccMedBtn.addEventListener("click", (e) => { e.stopPropagation(); setModeOrToggle("CC"); });
+    ccXBtn.addEventListener("click", (e) => { e.stopPropagation(); setModeOrToggle("CCx"); });
+
+    // ====== list load (S1+S2+S3) ======
+    function itemsFingerprint(list){
+      if (!Array.isArray(list) || !list.length) return "";
+      return list.map(x => String(x?.id || "")).sort().join("|");
+    }
+
+    async function fetchIaMetadata(identifier){
+      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}`;
+      const res = await fetch(metaUrl, { cache: FORCE_REFRESH ? "no-store" : "no-cache" });
+      if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
+      return res.json();
+    }
+
+    function mapFilesToItems(identifier, src, files){
+      return (files || [])
+        .filter(f => {
+          const name = (f.name || "").toLowerCase();
+          if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+          if (!("source" in f)) return true;
+          return (String(f.source).toLowerCase() === "original");
+        })
+        .filter(f => (src !== SRC_S3) ? true : !ia3IsBlockedByPrefix(f.name || ""))
+        .map((f, idx) => {
+          const name = f.name || "";
+          const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+          const url = buildDownloadUrl(identifier, name);
+          const localId = name || url || (title + "#" + idx);
+          const id = src + "|" + localId;
+
+          const txtCandidates = buildTxtNameCandidates({ name });
+          const txtName = (txtCandidates && txtCandidates.length) ? txtCandidates[0] : decodeURIComponentSafe(name).replace(/\.(m4a|mp3)$/i, ".txt");
+
+          const txtBase = (src === SRC_S2) ? __S2_TXT_BASES[0] : (src === SRC_S3) ? __S3_TXT_BASES[0] : TXT_BASES[0];
+          const txtUrl = txtName ? (txtBase + encodeURIComponent(txtName)) : "";
+
+          return { id, title, name, url, src, ia: identifier, txtName, txtUrl };
+        });
+    }
+
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+    async function loadItems(){
+      const cached = loadAny(LS.itemsCache);
+      const cachedAt = Number(localStorage.getItem(LS.itemsCacheAt) || "0");
+      const cacheFresh =
+        !FORCE_REFRESH &&
+        Array.isArray(cached) &&
+        cached.length > 0 &&
+        Number.isFinite(cachedAt) &&
+        (Date.now() - cachedAt) < CACHE_TTL_MS;
+
+      if (cacheFresh){
+        items = cached;
+        statusEl.textContent = "";
+        setSortIcons();
+        render();
+        scheduleRefreshCounts(50);
+      } else {
+        statusEl.textContent = "Yükleniyor...";
+      }
+
+      try{
+        const [j1, j2, j3] = await Promise.all([
+          fetchIaMetadata(IA_IDENTIFIER_1),
+          fetchIaMetadata(IA_IDENTIFIER_2),
+          fetchIaMetadata(IA_IDENTIFIER_3),
+        ]);
+
+        const files1 = Array.isArray(j1.files) ? j1.files : [];
+        const files2 = Array.isArray(j2.files) ? j2.files : [];
+        const files3 = Array.isArray(j3.files) ? j3.files : [];
+
+        const list = []
+          .concat(mapFilesToItems(IA_IDENTIFIER_1, SRC_S1, files1))
+          .concat(mapFilesToItems(IA_IDENTIFIER_2, SRC_S2, files2))
+          .concat(mapFilesToItems(IA_IDENTIFIER_3, SRC_S3, files3));
+
+        const newFp = itemsFingerprint(list);
+        const oldFp = itemsFingerprint(items);
+        const shouldUpdate = !cacheFresh || (newFp && newFp !== oldFp);
+
+        if (shouldUpdate){
+          items = list;
+          localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
+          localStorage.setItem(LS.itemsCache, JSON.stringify(items));
+          statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
+          setSortIcons();
+          render();
+          scheduleRefreshCounts(100);
+        } else {
+          localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
+        }
+        updateSticky(true);
+      }catch(err){
+        console.error(err);
+        if (!cacheFresh) statusEl.textContent = "Liste yüklenemedi.";
+      }
+    }
+
+    // ====== visible list ======
+    function getVisibleItems(){
+      const q = foldTR((searchEl.value || "").trim());
+      let arr = items.filter(it => {
+        if (q && !foldTR(it.title).includes(q)) return false;
+        if (filterFav && !favs[it.id]) return false;
+        return true;
+      });
+
+      if (sortMode === "dur"){
+        const dir = (durSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ha = (durs[a.id] > 0);
+          const hb = (durs[b.id] > 0);
+          if (ha !== hb) return ha ? -1 : 1;
+          if (ha && hb){
+            const da = durs[a.id];
+            const db = durs[b.id];
+            if (da !== db) return (da - db) * dir;
+          }
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "date"){
+        const dir = (dateSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ta = parseEndDate(a);
+          const tb = parseEndDate(b);
+          const ha = (ta !== null);
+          const hb = (tb !== null);
+          if (ha !== hb) return ha ? -1 : 1;
+          if (ha && hb && ta !== tb) return (ta - tb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "play"){
+        const dir = (playSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ca = Number(globalPlayCounts[a.id]) || 0;
+          const cb = Number(globalPlayCounts[b.id]) || 0;
+          if (ca !== cb) return (ca - cb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "download"){
+        const dir = (dlSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ca = Number(globalDownloadCounts[a.id]) || 0;
+          const cb = Number(globalDownloadCounts[b.id]) || 0;
+          if (ca !== cb) return (ca - cb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else {
+        arr.sort((a,b) => a.title.localeCompare(b.title, "tr"));
+      }
+      return arr;
+    }
+
+    // ====== sort icons ======
     function setArrowIcon(svgEl, isAsc) {
       if (!svgEl) return;
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
-
       const ns = "http://www.w3.org/2000/svg";
       const mkPath = (d) => {
         const p = document.createElementNS(ns, "path");
@@ -1192,11 +2162,9 @@ function ia3IsBlockedByPrefix(fileName){
         p.setAttribute("stroke-linejoin", "round");
         return p;
       };
-
       svgEl.setAttribute("viewBox", "0 0 24 24");
       svgEl.setAttribute("aria-hidden", "true");
       svgEl.setAttribute("focusable", "false");
-
       svgEl.appendChild(mkPath(isAsc ? "M12 19V5" : "M12 5v14"));
       svgEl.appendChild(mkPath(isAsc ? "M7 10l5-5 5 5" : "M7 14l5 5 5-5"));
     }
@@ -1258,329 +2226,29 @@ function ia3IsBlockedByPrefix(fileName){
       render();
     });
 
-    // =========================
-    // DURATION LOADER
-    // =========================
-    const durQueue = [];
-    const durLoading = new Set();
-    let durActive = 0;
-    const DUR_CONCURRENCY = 2;
-    let rerenderTimer = null;
+    // ====== render rows ======
+    function iconButton(kind, on, title){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "iconBtn" + (on ? " on" : "");
+      btn.title = title;
+      btn.dataset.kind = kind;
 
-    function scheduleRerender(){
-      if (rerenderTimer) return;
-      rerenderTimer = setTimeout(() => {
-        rerenderTimer = null;
-        render();
-      }, 120);
-    }
-
-    function requestDuration(it){
-      const id = it.id;
-      if (durs[id] > 0) return;
-      if (durLoading.has(id)) return;
-      durLoading.add(id);
-      durQueue.push(it);
-      pumpDurationQueue();
-    }
-
-    function pumpDurationQueue(){
-      while (durActive < DUR_CONCURRENCY && durQueue.length){
-        const it = durQueue.shift();
-        durActive++;
-        loadDurationFor(it).catch(() => {}).finally(() => {
-          durActive--;
-          pumpDurationQueue();
-        });
+      if (kind === "star"){
+        btn.setAttribute("aria-pressed", String(!!on));
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>`;
+      } else if (kind === "download"){
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>`;
       }
-    }
-
-    function loadDurationFor(it){
-      return new Promise((resolve, reject) => {
-        const a = new Audio();
-        a.preload = "metadata";
-        a.src = it.url;
-
-        let done = false;
-
-        const cleanup = () => {
-          a.removeEventListener("loadedmetadata", onMeta);
-          a.removeEventListener("error", onErr);
-          try { a.src = ""; } catch {}
-        };
-
-        const finish = (ok, err) => {
-          if (done) return;
-          done = true;
-          cleanup();
-          durLoading.delete(it.id);
-          ok ? resolve() : reject(err || new Error("metadata error"));
-        };
-
-        const onMeta = () => {
-          const dur = a.duration;
-          if (Number.isFinite(dur) && dur > 0){
-            durs[it.id] = dur;
-            saveMap(LS.durs, durs);
-            scheduleRerender();
-          }
-          finish(true);
-        };
-
-        const onErr = () => finish(false, new Error("metadata error"));
-
-        a.addEventListener("loadedmetadata", onMeta, { once: true });
-        a.addEventListener("error", onErr, { once: true });
-
-        setTimeout(() => {
-          if (!done) finish(false, new Error("timeout"));
-        }, 12000);
-      });
-    }
-
-    // =========================
-    // DOWNLOAD
-    // =========================
-    function makeProxyUrl(fileUrl, filename){
-      const u = DL_PROXY + "?u=" + encodeURIComponent(fileUrl);
-      return filename ? (u + "&f=" + encodeURIComponent(filename)) : u;
-    }
-
-    function clickDownload(href, filename){
-      const a = document.createElement("a");
-      a.href = href;
-      a.rel = "noopener";
-      a.target = "_blank";
-      if (filename) a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-
-    async function forceDownload(fileUrl, filename){
-      const proxied = makeProxyUrl(fileUrl, filename);
-      try{
-        clickDownload(proxied, filename);
-        return;
-      }catch{}
-
-      try{
-        const res = await fetch(proxied, { mode: "cors", cache: "no-store" });
-        if (!res.ok) throw new Error("fetch failed");
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        clickDownload(url, filename);
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      }catch{
-        window.location.href = fileUrl;
-      }
-    }
-
-    function buildDownloadUrl(identifier, name){
-      const parts = (name || "").split("/").map(p => encodeURIComponent(p));
-      return `https://archive.org/download/${identifier}/${parts.join("/")}`;
-    }
-
-    // =========================
-    // LOAD SOURCE (CACHE + TTL)
-    // =========================
-    async function loadSource(identifier, prefix, opts){
-      const cacheKey   = opts?.cacheKey   || "";
-      const cacheAtKey = opts?.cacheAtKey || "";
-      const ttlMs      = Number(opts?.ttlMs || 0);
-      const never      = !!opts?.neverChanges;
-
-      const cached = cacheKey ? loadAny(cacheKey) : null;
-      const hasCache = Array.isArray(cached) && cached.length > 0;
-
-      const at = cacheAtKey ? loadAt(cacheAtKey) : 0;
-      const isFresh = never ? hasCache : (hasCache && ttlMs > 0 && (Date.now() - at) < ttlMs);
-
-      // Cache tazeyse ve refresh yoksa: NET'E ÇIKMA
-      if (!FORCE_REFRESH && isFresh){
-        return cached;
-      }
-
-      // Taze değilse: fetch dene. Hata olursa cache varsa onu döndür.
-      try{
-        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
-        const res = await fetch(metaUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
-        const j = await res.json();
-
-        const files = Array.isArray(j.files) ? j.files : [];
-        const list = files
-          .filter(f => {
-            const name = (f.name || "").toLowerCase();
-            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
-            if (!("source" in f)) return true;
-            return (String(f.source).toLowerCase() === "original");
-          })
-          .map((f, idx) => {
-            const name = f.name || "";
-            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
-            const url = buildDownloadUrl(identifier, name);
-            const localId = name || url || (title + "#" + idx);
-            const id = prefix + "|" + localId;
-            return { id, title, name, url, src: prefix };
-          });
-
-        // cache yaz
-        if (cacheKey){
-          try{
-            localStorage.setItem(cacheAtKey, String(Date.now()));
-            saveAny(cacheKey, list);
-          }catch{}
-        }
-
-        return list;
-      }catch(err){
-        if (hasCache) return cached;
-        throw err;
-      }
-    }
-
-    // =========================
-    // LOAD ITEMS (All-in-One)
-    // =========================
-    async function loadItems(){
-      // Cache varsa ilk açılışta "Yükleniyor..." yazma (flicker azalır)
-      const c1 = loadAny(LS.itemsS1);
-      const c2 = loadAny(LS.itemsS2);
-      const hasAnyCache =
-        (Array.isArray(c1) && c1.length) ||
-        (Array.isArray(c2) && c2.length);
-
-      statusEl.textContent = hasAnyCache ? "" : "Yükleniyor...";
-
-      try{
-        const [a1, a2] = await Promise.allSettled([
-          loadSource(IA_IDENTIFIER_1, "S1", {
-            cacheKey: LS.itemsS1,
-            cacheAtKey: LS.itemsS1At,
-            ttlMs: S1_CACHE_TTL_MS,
-            neverChanges: false
-          }),
-          loadSource(IA_IDENTIFIER_2, "S2", {
-            cacheKey: LS.itemsS2,
-            cacheAtKey: LS.itemsS2At,
-            ttlMs: 0,
-            neverChanges: S2_NEVER_CHANGES
-          }),
-        ]);
-
-        const list = [];
-        if (a1.status === "fulfilled") list.push(...a1.value);
-        if (a2.status === "fulfilled") list.push(...a2.value);
-
-        items = list;
-        // ✅ S3: FSPneu ekle (şehir/eyalet önek filtresi ile)
-try{
-  const s3 = await loadSource(IA_IDENTIFIER_3, "S3", {
-    cacheKey: "fsp3.items.S3.v1",
-    cacheAtKey: "fsp3.items.S3.at.v1",
-    ttlMs: 24 * 60 * 60 * 1000,
-    neverChanges: false
-  });
-
-  if (Array.isArray(s3) && s3.length){
-    items = items.concat(
-      s3.filter(it => !ia3IsBlockedByPrefix(it?.name || it?.title || ""))
-    );
-  }
-}catch(e){
-  console.warn("FSPneu (S3) yüklenemedi:", e);
-}
-        statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
-        setSortIcons();
-        render();
-        scheduleRefreshCounts(100);
-      }catch(err){
-        console.error(err);
-
-        // Son çare: cache ile aç (varsa)
-        const fallback = [];
-        if (Array.isArray(c1)) fallback.push(...c1);
-        if (Array.isArray(c2)) fallback.push(...c2);
-
-        if (fallback.length){
-          items = fallback;
-          statusEl.textContent = "";
-          setSortIcons();
-          render();
-          scheduleRefreshCounts(120);
-          return;
-        }
-
-        statusEl.textContent = "Liste yüklenemedi.";
-      }
-    }
-
-    // =========================
-    // UI / LIST
-    // =========================
-    function getVisibleItems(){
-      const q = foldTR((searchEl.value || "").trim());
-
-      let arr = items.filter(it => {
-        if (q && !foldTR(it.title).includes(q)) return false;
-        if (filterFav && !favs[it.id]) return false;
-        return true;
-      });
-
-      if (sortMode === "dur"){
-        const dir = (durSortDir === "asc") ? 1 : -1;
-        arr.sort((a,b) => {
-          const ha = (durs[a.id] > 0);
-          const hb = (durs[b.id] > 0);
-          if (ha !== hb) return ha ? -1 : 1;
-          if (ha && hb){
-            const da = durs[a.id];
-            const db = durs[b.id];
-            if (da !== db) return (da - db) * dir;
-          }
-          return a.title.localeCompare(b.title, "tr");
-        });
-      } else if (sortMode === "date"){
-        const dir = (dateSortDir === "asc") ? 1 : -1;
-        arr.sort((a,b) => {
-          const ta = parseEndDate(a);
-          const tb = parseEndDate(b);
-          const ha = (ta !== null);
-          const hb = (tb !== null);
-          if (ha !== hb) return ha ? -1 : 1;
-          if (ha && hb && ta !== tb) return (ta - tb) * dir;
-          return a.title.localeCompare(b.title, "tr");
-        });
-      } else if (sortMode === "play"){
-        const dir = (playSortDir === "asc") ? 1 : -1;
-        arr.sort((a,b) => {
-          const ca = Number(globalPlayCounts[a.id]) || 0;
-          const cb = Number(globalPlayCounts[b.id]) || 0;
-          if (ca !== cb) return (ca - cb) * dir;
-          return a.title.localeCompare(b.title, "tr");
-        });
-      } else if (sortMode === "download"){
-        const dir = (dlSortDir === "asc") ? 1 : -1;
-        arr.sort((a,b) => {
-          const ca = Number(globalDownloadCounts[a.id]) || 0;
-          const cb = Number(globalDownloadCounts[b.id]) || 0;
-          if (ca !== cb) return (ca - cb) * dir;
-          return a.title.localeCompare(b.title, "tr");
-        });
-      } else {
-        arr.sort((a,b) => a.title.localeCompare(b.title, "tr"));
-      }
-
-      return arr;
+      return btn;
     }
 
     function render(){
       const visible = getVisibleItems();
       metaEl.textContent = `Görünən: ${visible.length} / Toplam: ${items.length}`;
-
       filterFavBtn.classList.toggle("on", filterFav);
       filterFavBtn.setAttribute("aria-pressed",  String(filterFav));
+      setSortIcons();
 
       listEl.innerHTML = "";
 
@@ -1591,7 +2259,7 @@ try{
 
       for (const it of visible){
         const row = document.createElement("div");
-        row.className = "itemRow" + (it.id === activeId ? " active" : "");
+        row.className = "itemRow" + (it.id === selectedId ? " active" : "");
 
         const title = document.createElement("div");
         title.className = "title";
@@ -1614,6 +2282,7 @@ try{
 
         favBtn.addEventListener("click", (e) => {
           e.stopPropagation();
+          selectedId = it.id;
           favs[it.id] = !favs[it.id];
           saveMap(LS.favs, favs);
           render();
@@ -1621,8 +2290,10 @@ try{
 
         dlBtn.addEventListener("click", (e) => {
           e.stopPropagation();
+          selectedId = it.id;
+
           const filename =
-            (it.name || it.file || "").split("/").pop() ||
+            (it.name || "").split("/").pop() ||
             (it.title || "audio").replace(/[\\/:*?"<>|]+/g, "_") + ".m4a";
 
           forceDownload(it.url, filename);
@@ -1647,49 +2318,22 @@ try{
         row.appendChild(dlBtn);
         row.appendChild(dlCount);
 
-        row.addEventListener("click", () => playById(it.id));
+        row.addEventListener("click", (e) => {
+          const inTitle = !!(e.target && e.target.closest && e.target.closest(".title"));
+          if (!inTitle){
+            selectedId = it.id;
+            render();
+            return;
+          }
+          playById(it.id);
+        });
+
         listEl.appendChild(row);
       }
-
-      const cur = (statusEl.textContent || "").trim();
-      if (counterStatus){
-        if (!cur || cur.startsWith("Sayaç")) statusEl.textContent = counterStatus;
-      } else {
-        if (cur.startsWith("Sayaç")) statusEl.textContent = "";
-      }
+      updateSticky(false);
     }
 
-    function iconButton(kind, on, title){
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "iconBtn" + (on ? " on" : "");
-      btn.title = title;
-      btn.dataset.kind = kind;
-
-      if (kind === "star"){
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
-          </svg>`;
-      } else if (kind === "download"){
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 3v12"/>
-            <path d="M7 10l5 5 5-5"/>
-            <path d="M5 21h14"/>
-          </svg>`;
-      }
-
-      return btn;
-    }
-
-    function playById(id){
-      const visible = getVisibleItems();
-      const idx = visible.findIndex(x => x.id === id);
-      if (idx === -1) return;
-      playAtVisibleIndex(idx);
-    }
-
+    // ====== player ======
     function setMediaSource(url, mime){
       while (playerEl.firstChild) playerEl.removeChild(playerEl.firstChild);
       const s = document.createElement("source");
@@ -1705,11 +2349,13 @@ try{
       if (!it) return;
 
       armPlayGate(it);
-
       statusEl.textContent = "";
       activeId = it.id;
+      selectedId = it.id;
       fpTitle.textContent = it.title;
       render();
+
+      if (isCaptionsOn()) renderCaptionInfo("Altyazı yükleniyor…");
 
       const url = it.url;
       const mime = guessMime(url);
@@ -1718,20 +2364,21 @@ try{
       try{
         plyr.speed = currentSpeed;
         setMediaSource(url, mime);
+        loadSrtForItem(it).catch(() => {});
         const p = plyr.play();
         if (p && typeof p.catch === "function"){
-          p.catch(() => {
-            statusEl.textContent = "Oynatma engellendi. Player içindeki ▶︎ tuşuna bas.";
-          });
+          p.catch(() => { statusEl.textContent = "Oynatma engellendi. Player içindeki ▶︎ tuşuna bas."; });
         }
-        setTimeout(() => {
-          if (playerEl && playerEl.paused) {
-            statusEl.textContent = statusEl.textContent || "Oynatma başlamadı. Player içindeki ▶︎ tuşuna bas.";
-          }
-        }, 900);
       }catch{
         statusEl.textContent = "Player başlatılamadı.";
       }
+    }
+
+    function playById(id){
+      const visible = getVisibleItems();
+      const idx = visible.findIndex(x => x.id === id);
+      if (idx === -1) return;
+      playAtVisibleIndex(idx);
     }
 
     function playPrev(){
@@ -1756,110 +2403,56 @@ try{
     nextBtn.addEventListener("click", playNext);
     plyr.on("ended", () => { setTimeout(() => playNext(), 0); });
 
-    document.addEventListener("keydown", (e) => {
-      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
-      const inTyping = (tag === "input" || tag === "textarea");
-      if (inTyping) return;
-
-      if (e.code === "Space"){
-        e.preventDefault();
-        plyr.togglePlay();
-      } else if (e.code === "ArrowLeft"){
-        e.preventDefault();
-        playPrev();
-      } else if (e.code === "ArrowRight"){
-        e.preventDefault();
-        playNext();
-      }
-    });
-
-    filterFavBtn.addEventListener("click", () => { filterFav = !filterFav; render(); });
-
-    resetBtn.addEventListener("click", () => {
-      filterFav = false;
-      searchEl.value = "";
-
-      sortMode = "date";
-      dateSortDir = "desc";
-      localStorage.setItem(LS.sortMode, sortMode);
-      localStorage.setItem(LS.sortDirDate, dateSortDir);
-
-      setSortIcons();
-      render();
-    });
-
-    const SEARCH_DEBOUNCE_MS = 900;
-    let searchTimer = null;
-
-    searchEl.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => render(), SEARCH_DEBOUNCE_MS);
-    });
-
-    searchEl.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      clearTimeout(searchTimer);
-      render();
-    });
-
-    // =========================
-    // DRAGGABLE PLAYER (zoom uyumlu)
-    // =========================
+    // ====== player dragging ======
     function restorePlayerPos(){
       try{
         const s = JSON.parse(localStorage.getItem(LS.pos) || "null");
         if (!s) return;
-        if (typeof s.x === "number" && typeof s.y === "number"){
-          fp.style.left = s.x + "px";
-          fp.style.top = s.y + "px";
-          fp.style.bottom = "auto";
-          fp.style.right = "auto";
-        }
+        if (typeof s.x !== "number" || typeof s.y !== "number") return;
+        fp.style.left = s.x + "px";
+        fp.style.top  = s.y + "px";
+        fp.style.bottom = "auto";
+        fp.style.right  = "auto";
+        clampPlayerToViewport();
       }catch{}
     }
-
-    function savePlayerPos(x,y){
-      localStorage.setItem(LS.pos, JSON.stringify({x,y}));
-    }
-
-    function getViewportWH(){
-      const vv = window.visualViewport;
-      const vw = (vv && vv.width)  ? vv.width  : window.innerWidth;
-      const vh = (vv && vv.height) ? vv.height : window.innerHeight;
-      return { vw, vh };
-    }
-
-    function toLayoutPx(v){
-      return useTransformScale ? (v / uiScale) : v;
-    }
-
-    function clampPlayerToViewport(){
-      const { vw, vh } = getViewportWH();
-
-      const vwL = toLayoutPx(vw);
-      const vhL = toLayoutPx(vh);
-
-      const wL = fp.offsetWidth;
-      const hL = fp.offsetHeight;
-
-      const minX = 8;
-      const minY = 8;
-      const maxX = Math.max(minX, vwL - wL - 8);
-      const maxY = Math.max(minY, vhL - hL - 8);
-
+    function savePlayerPos(x,y){ localStorage.setItem(LS.pos, JSON.stringify({ x, y })); }
+    function getPlayerRect(){ return fp.getBoundingClientRect(); }
+    function getPlayerPosPx(){
       const left = parseFloat(fp.style.left);
       const top  = parseFloat(fp.style.top);
-      if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+      if (Number.isFinite(left) && Number.isFinite(top)) return { left, top };
+      const r = getPlayerRect();
+      return { left: r.left, top: r.top };
+    }
+    function getPlayerBoundsPx(){
+      const { vw, vh } = getViewportWH();
+      const r = getPlayerRect();
+      const w = r.width;
+      const h = r.height;
 
-      const nx = Math.min(maxX, Math.max(minX, left));
-      const ny = Math.min(maxY, Math.max(minY, top));
+      const keepX = Math.max(70, Math.min(w - 16, 180));
+      const keepY = Math.max(56, Math.min(h - 16, 120));
+      const capH = (isCaptionsOn() && !captionsEl.classList.contains("hidden"))
+        ? captionsEl.getBoundingClientRect().height
+        : 0;
 
+      const minX = -w + keepX;
+      const maxX = vw - keepX;
+      const minY = -h + keepY + capH;
+      const maxY = vh - keepY;
+
+      return { minX, maxX, minY, maxY };
+    }
+    function clampPlayerToViewport(){
+      const { minX, maxX, minY, maxY } = getPlayerBoundsPx();
+      const cur = getPlayerPosPx();
+      const nx = Math.min(maxX, Math.max(minX, cur.left));
+      const ny = Math.min(maxY, Math.max(minY, cur.top));
       fp.style.left = nx + "px";
       fp.style.top  = ny + "px";
       fp.style.right = "auto";
       fp.style.bottom = "auto";
-
       savePlayerPos(nx, ny);
     }
 
@@ -1867,76 +2460,35 @@ try{
       "button, a, input, textarea, select, option, " +
       ".speedWrap, .speedCtlBtn, .miniBtn, " +
       ".plyr__controls, .plyr__control, .plyr__progress, .plyr__seek, .plyr__volume, .plyr__time, .plyr__menu";
-
-    function shouldStartDrag(target){
-      return !(target && target.closest && target.closest(DRAG_IGNORE_SELECTOR));
-    }
+    function shouldStartDrag(target){ return !(target && target.closest && target.closest(DRAG_IGNORE_SELECTOR)); }
 
     let dragging = false;
     let startClientX = 0, startClientY = 0;
     let startLeft = 0, startTop = 0;
-    let moved = false;
-    let suppressClickUntil = 0;
 
-    function getCurrentLeftTopLayout(){
-      const left = parseFloat(fp.style.left);
-      const top  = parseFloat(fp.style.top);
-      if (Number.isFinite(left) && Number.isFinite(top)) return { left, top };
-
-      const rect = fp.getBoundingClientRect();
-      const l = useTransformScale ? (rect.left / uiScale) : rect.left;
-      const t = useTransformScale ? (rect.top  / uiScale) : rect.top;
-      return { left: l, top: t };
-    }
-
-    fp.addEventListener("pointerdown", (e) => {
+    fpHeader.addEventListener("pointerdown", (e) => {
       if (!shouldStartDrag(e.target)) return;
-
       dragging = true;
-      moved = false;
-
-      fp.setPointerCapture(e.pointerId);
+      fpHeader.setPointerCapture(e.pointerId);
       fpHeader.style.cursor = "grabbing";
-
       startClientX = e.clientX;
       startClientY = e.clientY;
-
-      const cur = getCurrentLeftTopLayout();
+      const cur = getPlayerPosPx();
       startLeft = cur.left;
       startTop  = cur.top;
-
       fp.style.left = startLeft + "px";
       fp.style.top  = startTop + "px";
       fp.style.bottom = "auto";
       fp.style.right  = "auto";
     });
 
-    fp.addEventListener("pointermove", (e) => {
+    fpHeader.addEventListener("pointermove", (e) => {
       if (!dragging) return;
-
-      const dxClient = e.clientX - startClientX;
-      const dyClient = e.clientY - startClientY;
-
-      const dx = useTransformScale ? (dxClient / uiScale) : dxClient;
-      const dy = useTransformScale ? (dyClient / uiScale) : dyClient;
-
-      if (!moved && (Math.abs(dxClient) + Math.abs(dyClient) > 6)) moved = true;
-
-      const { vw, vh } = getViewportWH();
-      const vwL = toLayoutPx(vw);
-      const vhL = toLayoutPx(vh);
-
-      const wL = fp.offsetWidth;
-      const hL = fp.offsetHeight;
-
-      const minX = 8;
-      const minY = 8;
-      const maxX = Math.max(minX, vwL - wL - 8);
-      const maxY = Math.max(minY, vhL - hL - 8);
-
+      const dx = e.clientX - startClientX;
+      const dy = e.clientY - startClientY;
+      const { minX, maxX, minY, maxY } = getPlayerBoundsPx();
       const nx = Math.min(maxX, Math.max(minX, startLeft + dx));
       const ny = Math.min(maxY, Math.max(minY, startTop  + dy));
-
       fp.style.left = nx + "px";
       fp.style.top  = ny + "px";
       savePlayerPos(nx, ny);
@@ -1946,66 +2498,314 @@ try{
       if (!dragging) return;
       dragging = false;
       fpHeader.style.cursor = "grab";
-
-      try { fp.releasePointerCapture(pointerId); } catch {}
+      try { fpHeader.releasePointerCapture(pointerId); } catch {}
       clampPlayerToViewport();
+    }
+    fpHeader.addEventListener("pointerup", (e) => endDrag(e.pointerId));
+    fpHeader.addEventListener("pointercancel", (e) => endDrag(e.pointerId));
 
-      if (moved){
-        suppressClickUntil = Date.now() + 350;
-        moved = false;
+    // ====== transcript popup (TXT) ======
+    let txOpen = false;
+    let txCurrent = null;
+    let txPlainText = "";
+    let txMatches = [];
+    let txActiveMatch = -1;
+    let txSearchTimer = null;
+
+    const txCache = new Map();
+    const TX_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+    function clearTxSearchUI(){
+      txMatches = [];
+      txActiveMatch = -1;
+      txMatchCountEl.textContent = "0/0";
+      txPrevMatchBtn.disabled = true;
+      txNextMatchBtn.disabled = true;
+      txContentEl.textContent = txPlainText || "";
+    }
+
+    function setTxtBtnUi(){
+      fpTxtBtn.classList.toggle("on", !!txOpen);
+      fpTxtBtn.setAttribute("aria-pressed", String(!!txOpen));
+    }
+
+    function openTranscript(){
+      txOpen = true;
+      txPanel.classList.add("open");
+      txPanel.setAttribute("aria-hidden", "false");
+      setTxtBtnUi();
+    }
+    function closeTranscript(){
+      txOpen = false;
+      txPanel.classList.remove("open");
+      txPanel.setAttribute("aria-hidden", "true");
+      txSearchRow.classList.remove("on");
+      setTxtBtnUi();
+    }
+    txCloseBtn.addEventListener("click", () => closeTranscript());
+
+    function escapeForRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+    function buildHighlightedHtml(text, ranges, activeIdx){
+      if (!ranges.length) return escHtml(text);
+      const parts = [];
+      let last = 0;
+      for (let i=0; i<ranges.length; i++){
+        const r = ranges[i];
+        const a = Math.max(0, r[0]);
+        const b = Math.max(a, r[1]);
+        if (a > last) parts.push(escHtml(text.slice(last, a)));
+        const cls = (i === activeIdx) ? "txMark active" : "txMark";
+        parts.push(`<span class="${cls}" data-mi="${i}">${escHtml(text.slice(a, b))}</span>`);
+        last = b;
+      }
+      if (last < text.length) parts.push(escHtml(text.slice(last)));
+      return parts.join("");
+    }
+
+    function computeMatches(text, q){
+      const out = [];
+      if (!q) return out;
+      const re = new RegExp(escapeForRegex(q), "gi");
+      let m;
+      while ((m = re.exec(text))){
+        const a = m.index;
+        const b = a + (m[0] || "").length;
+        if (b > a) out.push([a, b]);
+        if (out.length >= 2000) break;
+        if (m[0].length === 0) re.lastIndex++;
+      }
+      return out;
+    }
+
+    function scrollToActiveMatch(){
+      const el = txContentEl.querySelector(".txMark.active");
+      if (!el) return;
+      try{ el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" }); }
+      catch{ el.scrollIntoView(); }
+    }
+
+    function setActiveMatch(idx){
+      if (!txMatches.length) return;
+      txActiveMatch = ((idx % txMatches.length) + txMatches.length) % txMatches.length;
+      txMatchCountEl.textContent = `${txActiveMatch + 1}/${txMatches.length}`;
+
+      const old = txContentEl.querySelector(".txMark.active");
+      if (old) old.classList.remove("active");
+      const next = txContentEl.querySelector(\`.txMark[data-mi="\${txActiveMatch}"]\`);
+      if (next){
+        next.classList.add("active");
+        scrollToActiveMatch();
+      } else {
+        txContentEl.innerHTML = buildHighlightedHtml(txPlainText, txMatches, txActiveMatch);
+        setTimeout(() => scrollToActiveMatch(), 0);
       }
     }
 
-    fp.addEventListener("pointerup", (e) => endDrag(e.pointerId));
-    fp.addEventListener("pointercancel", (e) => endDrag(e.pointerId));
+    function applyTxSearch(){
+      const q = (txSearchInput.value || "").trim();
+      if (!q){ clearTxSearchUI(); return; }
+      txMatches = computeMatches(txPlainText, q);
+      txActiveMatch = txMatches.length ? 0 : -1;
 
-    fp.addEventListener("click", (e) => {
-      if (Date.now() < suppressClickUntil){
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }, true);
+      txPrevMatchBtn.disabled = txMatches.length < 2;
+      txNextMatchBtn.disabled = txMatches.length < 2;
 
-    window.addEventListener("resize", () => clampPlayerToViewport());
-    window.addEventListener("orientationchange", () => setTimeout(clampPlayerToViewport, 150));
-    if (window.visualViewport){
-      window.visualViewport.addEventListener("resize", () => clampPlayerToViewport());
+      txMatchCountEl.textContent = txMatches.length ? \`1/\${txMatches.length}\` : \`0/0\`;
+      txContentEl.innerHTML = buildHighlightedHtml(txPlainText, txMatches, txActiveMatch);
+      if (txMatches.length) setTimeout(() => scrollToActiveMatch(), 0);
     }
 
-    (function disablePullToRefresh(){
-      let startY = 0;
-      scrollArea.addEventListener("touchstart", (e) => {
-        if (!e.touches || !e.touches.length) return;
-        startY = e.touches[0].clientY;
-      }, { passive: true });
+    txSearchBtn.addEventListener("click", () => {
+      const on = txSearchRow.classList.toggle("on");
+      if (on){
+        txSearchInput.focus();
+        txSearchInput.select();
+      }
+    });
 
-      scrollArea.addEventListener("touchmove", (e) => {
-        if (!e.touches || !e.touches.length) return;
-        const y = e.touches[0].clientY;
+    txSearchInput.addEventListener("input", () => {
+      clearTimeout(txSearchTimer);
+      txSearchTimer = setTimeout(applyTxSearch, 180);
+    });
 
-        if (scrollArea.scrollTop <= 0 && y > startY + 4){
-          e.preventDefault();
+    txPrevMatchBtn.addEventListener("click", () => setActiveMatch(txActiveMatch - 1));
+    txNextMatchBtn.addEventListener("click", () => setActiveMatch(txActiveMatch + 1));
+
+    async function copyToClipboard(text){
+      if (!text) return false;
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch{}
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        return !!ok;
+      }catch{
+        return false;
+      }
+    }
+
+    txCopyBtn.addEventListener("click", async () => {
+      const ok = await copyToClipboard(txPlainText);
+      txInfoEl.textContent = ok ? "Kopyalandı." : "Kopyalanamadı.";
+      setTimeout(() => { if (txCurrent) updateTxInfo(txCurrent); }, 900);
+    });
+
+    txDownloadBtn.addEventListener("click", () => {
+      if (!txCurrent || !txCurrent.txtUrl) return;
+      const filename = (txCurrent.txtName || "").split("/").pop() || "transkript.txt";
+      forceDownload(txCurrent.txtUrl, filename);
+    });
+
+    function updateTxInfo(it){
+      const file = (it?.txtName || "").split("/").pop() || "—";
+      txInfoEl.textContent = file ? \`TXT: \${file}\` : "—";
+    }
+
+    async function fetchTranscriptText(it){
+      const cached = txCache.get(it.id);
+      if (cached && (Date.now() - cached.at) < TX_CACHE_TTL_MS) return cached.text;
+
+      const built = await buildTxtUrlsForItem(it);
+      const urls = [];
+      const seen = new Set();
+
+      for (const u of [it?.txtUrl, ...(built?.urls || [])]){
+        const uu = String(u || "").trim();
+        if (!uu) continue;
+        if (seen.has(uu)) continue;
+        seen.add(uu);
+        urls.push(uu);
+      }
+
+      let lastErr = null;
+      for (const url of urls){
+        try{
+          const res = await fetch(url, { cache: "no-cache" });
+          if (!res.ok) throw new Error("txt fetch failed: " + res.status);
+          const text = await res.text();
+
+          try{
+            const u = new URL(url, location.href);
+            const fn = decodeURIComponentSafe((u.pathname || "").split("/").pop() || "");
+            if (fn) it.txtName = fn;
+          }catch{}
+          it.txtUrl = url;
+
+          txCache.set(it.id, { text, at: Date.now() });
+          return text;
+        }catch(err){
+          lastErr = err;
         }
-      }, { passive: false });
-    })();
+      }
+      throw (lastErr || new Error("txt fetch failed"));
+    }
 
-    (function setActiveNav(){
-      const here = location.href.replace(/\/$/, "");
-      document.querySelectorAll(".navRow .navLink").forEach(a => {
-        a.classList.remove("on");
-        const u = (a.getAttribute("href") || "").replace(/\/$/, "");
-        if (!u) return;
-        if (here === u || here.startsWith(u + "/")) a.classList.add("on");
-      });
-    })();
+    async function openTranscriptFor(it){
+      if (!it) return;
+      txCurrent = it;
+      openTranscript();
 
-    // INIT
+      txTitleEl.textContent = it.title || "Transkript";
+      updateTxInfo(it);
+
+      txCopyBtn.disabled = true;
+      txDownloadBtn.disabled = true;
+      txContentEl.textContent = "Yükleniyor…";
+      txPlainText = "";
+      clearTxSearchUI();
+
+      try{
+        const t = await fetchTranscriptText(it);
+        txPlainText = t || "";
+        txCopyBtn.disabled = !txPlainText;
+        updateTxInfo(it);
+        txDownloadBtn.disabled = false;
+        clearTxSearchUI();
+      }catch{
+        txContentEl.textContent = "TXT yüklenemedi.";
+        txCopyBtn.disabled = true;
+      }
+    }
+
+    function toggleTranscriptFromPlayer(){
+      if (txOpen){ closeTranscript(); return; }
+      const it = items.find(x => x.id === activeId) || items.find(x => x.id === selectedId) || null;
+      if (!it){
+        openTranscript();
+        txTitleEl.textContent = "Transkript";
+        txInfoEl.textContent = "—";
+        txPlainText = "";
+        txContentEl.textContent = "Bir kayıt seç...";
+        txCopyBtn.disabled = true;
+        txDownloadBtn.disabled = true;
+        return;
+      }
+      openTranscriptFor(it).catch(()=>{});
+    }
+    fpTxtBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleTranscriptFromPlayer(); });
+
+    // ====== search / reset / fav ======
+    filterFavBtn.addEventListener("click", () => { filterFav = !filterFav; render(); });
+
+    resetBtn.addEventListener("click", () => {
+      filterFav = false;
+      searchEl.value = "";
+      sortMode = "title";
+      dateSortDir = "desc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirDate, dateSortDir);
+      setSortIcons();
+      render();
+    });
+
+    const SEARCH_DEBOUNCE_MS = 900;
+    let searchTimer = null;
+    searchEl.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => render(), SEARCH_DEBOUNCE_MS);
+    });
+    searchEl.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      clearTimeout(searchTimer);
+      render();
+    });
+
+    // ====== keyboard ======
+    function isTypingTarget(){
+      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+      return (tag === "input" || tag === "textarea");
+    }
+    document.addEventListener("keydown", (e) => {
+      if (isTypingTarget()) return;
+      if (e.code === "Space"){ e.preventDefault(); plyr.togglePlay(); }
+      else if (e.code === "ArrowLeft"){ e.preventDefault(); playPrev(); }
+      else if (e.code === "ArrowRight"){ e.preventDefault(); playNext(); }
+      else if (e.key === "Escape"){ if (txOpen) closeTranscript(); }
+    });
+
+    // ====== init ======
+    setZoomUI();
+    setSpeedUI(1);
     setSortIcons();
-    restorePlayerPos();
     restoreSpeed();
     restoreZoom();
+    restorePlayerPos();
+    setCaptionUi();
+    requestAnimationFrame(() => { measureStickyStartTop(); updateSticky(true); });
     setTimeout(clampPlayerToViewport, 0);
     loadItems();
+    setTimeout(() => scheduleRefreshCounts(200), 700);
   </script>
 </body>
 </html>
