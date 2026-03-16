@@ -1,0 +1,2011 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FSP Audio — Birleşik Liste</title>
+
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
+  <style>
+    :root{
+      --border:#e9e9e9;
+      --muted:#6b6b6b;
+      --bg:#ffffff;
+      --hover:#f7f7f7;
+
+      --active:#cfe9ff;
+      --activeGlow: 0 0 0 2px rgba(43,124,255,.34) inset, 0 12px 26px rgba(43,124,255,.14);
+
+      --blue:#2b7cff;
+      --blueGlow: 0 0 0 4px rgba(43,124,255,.24), 0 10px 22px rgba(43,124,255,.10);
+
+      --green:#16a34a;
+      --greenGlow: 0 0 0 4px rgba(22,163,74,.22), 0 10px 22px rgba(22,163,74,.10);
+
+      --orange:#f59e0b;
+    }
+
+    html, body{
+      height: 100%;
+      overscroll-behavior-y: none;
+      background: var(--bg);
+    }
+
+    body{
+      margin: 0;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:#111;
+      line-height: 1.10;
+    }
+
+    #scrollArea{
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 18px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    #appScale{
+      transform-origin: top left;
+      will-change: transform;
+    }
+
+    .pageTitle{
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0b5fff;
+      background: #f1f5ff;
+      padding: 12px 16px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+
+    .navRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      margin: 0 0 12px 0;
+    }
+    .navLink{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      color:#111;
+      text-decoration:none;
+      font-size: .95rem;
+      line-height: 1;
+      user-select:none;
+      transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .navLink:hover{ background: var(--hover); }
+    .navLink.on{
+      border-color:var(--blue);
+      background: rgba(43,124,255,.10);
+      box-shadow: 0 0 0 3px rgba(43,124,255,.16) inset;
+    }
+
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    #search{
+      flex: 1 1 520px;
+      min-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    #resetBtn{
+      padding: 10px 16px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      background: white;
+      cursor: pointer;
+      font-size: 1rem;
+      flex: 0 0 auto;
+    }
+    #resetBtn:hover{ background: var(--hover); }
+
+    .zoomWrap{
+      display:flex;
+      align-items:center;
+      gap: 24px;
+      margin-left: 14px;
+      padding: 6px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      background: white;
+      user-select:none;
+      flex: 0 0 auto;
+    }
+    .zoomBtn{
+      height: 36px;
+      width: 48px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor: pointer;
+      line-height: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease, filter .15s ease;
+    }
+    .zoomBtn:hover{ background: var(--hover); }
+    .zoomBtn:disabled{ opacity: .35; cursor: default; }
+
+    .zoomBtn svg{
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .95;
+    }
+
+    .zoomBtn.zoomOut,
+    .zoomBtn.zoomIn{
+      opacity: .55;
+      filter: saturate(1.2);
+      color: #111;
+    }
+
+    .zoomBtn.enabled.zoomOut{
+      opacity: 1;
+      background: rgba(255, 149, 0, .18);
+      border-color: rgba(255, 149, 0, .70);
+      box-shadow: 0 0 0 3px rgba(255, 149, 0, .16) inset, 0 8px 18px rgba(255, 149, 0, .12);
+      filter: saturate(1.7);
+      color: #b45309;
+    }
+    .zoomBtn.enabled.zoomIn{
+      opacity: 1;
+      background: rgba(34, 197, 94, .18);
+      border-color: rgba(34, 197, 94, .70);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .16) inset, 0 8px 18px rgba(34, 197, 94, .12);
+      filter: saturate(1.7);
+      color: #15803d;
+    }
+
+    #meta{
+      color: var(--muted);
+      font-size: .95rem;
+      margin: 6px 0 12px 2px;
+      line-height: 1.05;
+    }
+
+    /* Kayıt | Süre | ▶︎(play) | ⭐ | ⬇︎ | ⬇︎(count) */
+    .headerRow, .itemRow{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 8ch 54px 36px 36px 54px;
+      align-items: center;
+      column-gap: 8px;
+    }
+
+    .headerRow{
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.05;
+    }
+
+    .titleHead, .durHead{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      width: 100%;
+    }
+    .titleHead{ justify-content:flex-start; }
+    .durHead{ justify-content:flex-end; }
+
+    .headIconCell{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+    }
+
+    .sortBtn{
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      color:#111;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .sortBtn:hover{ background: var(--hover); }
+    .sortBtn.on{
+      border-color:var(--blue);
+      box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
+    }
+
+    .sortBtn svg{
+      width: 20px;
+      height: 20px;
+      display: block;
+      flex: 0 0 auto;
+    }
+    .sortBtn .mainIcon{
+      width: 20px;
+      height: 20px;
+    }
+    .sortBtn .dirIcon{
+      position: absolute;
+      right: 4px;
+      bottom: 2px;
+      width: 12px;
+      height: 12px;
+      opacity: .95;
+    }
+
+    .iconOrange{ fill: var(--orange); }
+    .iconBlue{ fill: var(--blue); }
+
+    #list{
+      border-bottom: 1px solid var(--border);
+    }
+
+    .itemRow{
+      padding: 4px 8px;
+      border-bottom: 1px solid #ececec;
+      cursor: pointer;
+      background: #f7f7f7;
+    }
+    #list .itemRow:nth-child(even){
+      background: #eeeeee;
+    }
+    .itemRow:hover{ background: var(--hover); }
+
+    .itemRow.active{
+      background: var(--active) !important;
+      box-shadow: var(--activeGlow);
+      position: relative;
+    }
+    .itemRow.active:hover{ background: var(--active) !important; }
+    .itemRow.active::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:4px;
+      background: var(--blue);
+      border-radius: 4px;
+    }
+
+    .title{
+      font-size: 1.02rem;
+      font-weight: 500;
+      line-height: 1.02;
+      min-width: 0;
+    }
+
+    .dur{
+      text-align:right;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-size: .95rem;
+      user-select:none;
+      white-space: nowrap;
+      line-height: 1.00;
+    }
+
+    .countCell{
+      text-align: right;
+      color: #404040;
+      font-variant-numeric: tabular-nums;
+      font-size: .92rem;
+      user-select:none;
+      white-space: nowrap;
+      line-height: 1.00;
+      padding-right: 2px;
+    }
+
+    @media (max-width: 680px){
+      #scrollArea{ padding: 14px; }
+      .headerRow, .itemRow{ grid-template-columns: minmax(0, 1fr) 8ch 46px 34px 34px 46px; }
+      .title{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #search{ flex: 1 1 100%; }
+      .zoomWrap{ margin-left: 0; }
+    }
+
+    .iconBtn{
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor: pointer;
+      user-select:none;
+      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+      justify-self: center;
+    }
+    .iconBtn:hover{ background: var(--hover); }
+
+    .iconBtn.on{
+      border-color: var(--blue);
+      background: rgba(43,124,255,.10);
+      box-shadow: var(--blueGlow);
+    }
+    .iconBtn svg{ width: 14px; height: 14px; opacity: .9; }
+
+    .filterBtn{
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      color:#111;
+    }
+    .filterBtn:hover{ background: var(--hover); }
+    .filterBtn.on{
+      border-color:var(--blue);
+      box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
+    }
+    .filterBtn svg{ width:14px; height:14px; }
+
+    #floatingPlayer{
+      position: fixed;
+      left: max(18px, env(safe-area-inset-left));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      width: min(720px, calc(100vw - 36px));
+      background: white;
+
+      border: 1.5px solid #d6d6d6;
+      border-right-color: #bdbdbd;
+      border-bottom-color:#b3b3b3;
+      border-radius: 18px;
+
+      box-shadow:
+        10px 34px 86px rgba(0,0,0,.20),
+        4px 14px 30px rgba(0,0,0,.10),
+        0px 2px 6px rgba(0,0,0,.06);
+
+      overflow: hidden;
+      z-index: 9999;
+
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      transform-origin: top left;
+      will-change: transform;
+      transition: opacity .18s ease;
+      touch-action: none;
+    }
+
+    #floatingPlayer.hiddenWhileTyping{
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #fpHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      background: #fbfbfb;
+
+      cursor: grab;
+      user-select:none;
+      gap: 10px;
+      touch-action: none;
+      line-height: 1.05;
+
+      border-bottom: none;
+      position: relative;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.85),
+        inset 0 -1px 0 rgba(0,0,0,.04);
+    }
+
+    #fpHeader::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 2px;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.18),
+        rgba(255,255,255,.80)
+      );
+    }
+
+    #fpTitle{
+      font-weight: 650;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1 1 auto;
+      min-width: 0;
+      line-height: 1.12;
+    }
+
+    #fpHeaderRight{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .miniBtn{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .miniBtn:hover{ background: var(--hover); }
+    .miniBtn svg{ width:16px; height:16px; }
+
+    .speedWrap{
+      display:flex;
+      align-items:center;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid #d8d8d8;
+      border-radius: 14px;
+      background: white;
+      user-select:none;
+    }
+    .speedCtlBtn{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .speedCtlBtn:hover{ background: var(--hover); }
+
+    .speedValue{
+      min-width: 56px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid #d8d8d8;
+      background: white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+      padding: 0 10px;
+      cursor: default;
+    }
+    .speedValue.on{
+      border-color:var(--blue);
+      box-shadow: 0 0 0 3px rgba(43,124,255,.12) inset;
+    }
+
+    #fpBody{
+      padding: 10px 12px 12px 12px;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,.05);
+    }
+
+    #status{
+      margin: 8px 2px 0 2px;
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.05;
+    }
+
+    .plyr--audio .plyr__controls{
+      border-radius: 12px;
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    .plyr--audio .plyr__controls .plyr__progress{
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    @media (max-width: 680px){
+      #fpHeader{ flex-wrap: wrap; gap: 8px; }
+      #fpTitle{
+        flex: 1 1 100%;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+      }
+      #fpHeaderRight{
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .diseaseName{
+      color: #c2410c;
+      font-weight: 650;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scrollArea">
+    <div id="appScale">
+      <h1 class="pageTitle">FSP Audio — Birleşik Liste</h1>
+
+      <nav class="navRow" aria-label="Sayfalar">
+        <a class="navLink" href="https://protokolfsp.github.io/fsp-audio/">Güncel</a>
+        <a class="navLink" href="https://protokolfsp.github.io/FSP2022-23/">2021–23</a>
+        <a class="navLink" href="https://protokolfsp.github.io/All-in-One/">All-in-One</a>
+        <a class="navLink" href="https://protokolfsp.github.io/Tlcfsp/">TLC</a>
+        <a class="navLink" href="https://protokolfsp.github.io/MenschiB/">MenschiB</a>
+      </nav>
+
+      <div class="topbar">
+        <input id="search" type="text" placeholder="Arama (ör. ACS, DM, PAVK)..." />
+        <button id="resetBtn" type="button">Hepsi</button>
+
+        <div class="zoomWrap" aria-label="Görünüm">
+          <button id="zoomOutBtn" class="zoomBtn zoomOut" type="button" aria-label="Küçült">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="6"></circle>
+              <path d="M20 20l-3.5-3.5"></path>
+              <path d="M8.5 11h5"></path>
+            </svg>
+          </button>
+
+          <button id="zoomInBtn" class="zoomBtn zoomIn" type="button" aria-label="Büyüt">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="6"></circle>
+              <path d="M20 20l-3.5-3.5"></path>
+              <path d="M11 8.5v5"></path>
+              <path d="M8.5 11h5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="meta">Görünən: 0 / Toplam: 0</div>
+
+      <div class="headerRow">
+        <div class="colTitle">
+          <div class="titleHead">
+            <span>Kayıt</span>
+            <button id="sortDateBtn" class="sortBtn" type="button" title="Tarihe göre sırala (dosya sonu)">
+              <svg id="sortDateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="colDur" style="text-align:right;">
+          <div class="durHead">
+            <span>Süre</span>
+            <button id="sortDurBtn" class="sortBtn" type="button" title="Süreye göre sırala">
+              <svg id="sortDurIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="headIconCell">
+          <button id="sortPlayBtn" class="sortBtn" type="button" title="Dinlenme sayısına göre sırala">
+            <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="iconBlue" d="M3 10v4c0 .55.45 1 1 1h3l5 4V5L7 9H4c-.55 0-1 .45-1 1z"/>
+              <path class="iconOrange" d="M16.5 8.5a1 1 0 0 1 1.4.1c1 1.2 1.6 2.7 1.6 4.4s-.6 3.2-1.6 4.4a1 1 0 1 1-1.5-1.3c.7-.9 1.1-2 1.1-3.1s-.4-2.2-1.1-3.1a1 1 0 0 1 .1-1.4z"/>
+            </svg>
+            <svg id="sortPlayIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+          </button>
+        </div>
+
+        <div class="headIconCell">
+          <button id="filterFav" class="filterBtn" title="Favoriler filtrele" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="headIconCell" aria-hidden="true"></div>
+
+        <div class="headIconCell">
+          <button id="sortDlCountBtn" class="sortBtn" type="button" title="İndirme sayısına göre sırala">
+            <svg class="mainIcon" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="iconBlue" d="M4 3h12l4 4v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+              <path class="iconOrange" d="M7 3h8v6H7V3zm4 10.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6z"/>
+            </svg>
+            <svg id="sortDlCountIcon" class="dirIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="list"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <div id="floatingPlayer" role="region" aria-label="Oynatıcı">
+    <div id="fpHeader" title="Sürükle">
+      <div id="fpTitle">Bir kayıt seç...</div>
+      <div id="fpHeaderRight">
+        <div id="speedWrap" class="speedWrap" aria-label="Hız">
+          <button id="slowBtn" class="speedCtlBtn" type="button" title="Yavaşlat (🐢)">🐢</button>
+          <div id="speedValue" class="speedValue on" title="Oynatma hızı">1×</div>
+          <button id="fastBtn" class="speedCtlBtn" type="button" title="Hızlandır (🐇)">🐇</button>
+        </div>
+
+        <button id="prevBtn" class="miniBtn" type="button" title="Önceki">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M19 20L9 12l10-8v16z"/><path d="M5 19V5"/>
+          </svg>
+        </button>
+        <button id="nextBtn" class="miniBtn" type="button" title="Sonraki">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="fpBody">
+      <audio id="player" class="js-player" controls preload="metadata"></audio>
+    </div>
+  </div>
+
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+  <script>
+    // =========================
+    // SOURCES (All-in-One)
+    // =========================
+    const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
+    const IA_IDENTIFIER_2 = "FSP21_23";
+    const IA_IDENTIFIER_3 = "FSPneu"; // ✅ FSPneu
+    const IA3_BLOCK_PREFIXES = ["Dusseldorf","Düsseldorf","Stuttgart","Reutlingen","Sachsen","Hessen"];
+    const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
+
+    // COUNTERS
+    const COUNTER_API = "https://fspdlcounter.protokolfsp.workers.dev";
+
+    // CACHE CONTROL
+    const FORCE_REFRESH = new URLSearchParams(location.search).has("refresh"); // ?refresh=1
+    const S1_CACHE_TTL_MS = 72 * 60 * 60 * 1000; // 72 saat
+    const S2_NEVER_CHANGES = true; // FSP21_23: statik
+
+    const IS_SAFARI = (() => {
+      const ua = navigator.userAgent || "";
+      const isApple = /Mac|iPhone|iPad|iPod/i.test(ua);
+      const hasSafari = /Safari/i.test(ua);
+      const notChromeLike = !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg|OPR/i.test(ua);
+      return isApple && hasSafari && notChromeLike;
+    })();
+
+    // =========================
+    // DOM
+    // =========================
+    const scrollArea = document.getElementById("scrollArea");
+    const listEl   = document.getElementById("list");
+    const searchEl = document.getElementById("search");
+    const metaEl   = document.getElementById("meta");
+    const statusEl = document.getElementById("status");
+
+    const appScaleEl = document.getElementById("appScale");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomInBtn  = document.getElementById("zoomInBtn");
+
+    const fp = document.getElementById("floatingPlayer");
+    const fpHeader = document.getElementById("fpHeader");
+    const fpTitle = document.getElementById("fpTitle");
+
+    const playerEl = document.getElementById("player");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const slowBtn = document.getElementById("slowBtn");
+    const fastBtn = document.getElementById("fastBtn");
+    const speedValueEl = document.getElementById("speedValue");
+
+    const filterFavBtn  = document.getElementById("filterFav");
+    const resetBtn      = document.getElementById("resetBtn");
+
+    const sortDurBtn  = document.getElementById("sortDurBtn");
+    const sortDurIcon = document.getElementById("sortDurIcon");
+    const sortDateBtn  = document.getElementById("sortDateBtn");
+    const sortDateIcon = document.getElementById("sortDateIcon");
+
+    const sortPlayBtn  = document.getElementById("sortPlayBtn");
+    const sortPlayIcon = document.getElementById("sortPlayIcon");
+    const sortDlCountBtn  = document.getElementById("sortDlCountBtn");
+    const sortDlCountIcon = document.getElementById("sortDlCountIcon");
+
+    const plyr = new Plyr(playerEl, {
+      seekTime: 5,
+      controls: ["rewind","play","fast-forward","progress","current-time","duration","mute","volume"]
+    });
+
+    // =========================
+    // COUNTERS (play/download)
+    // =========================
+    let globalPlayCounts = {};
+    let globalDownloadCounts = {};
+
+    let counterStatus = "";
+    let lastCountsOkAt = 0;
+
+    function chunk(arr, size){
+      const out = [];
+      for (let i=0; i<arr.length; i+=size) out.push(arr.slice(i, i+size));
+      return out;
+    }
+
+    async function fetchCounts(type, ids){
+      if (!ids.length) return {};
+      try{
+        const res = await fetch(COUNTER_API + "/counts", {
+          method: "POST",
+          mode: "cors",
+          cache: "no-store",
+          headers: { "content-type": IS_SAFARI ? "text/plain;charset=utf-8" : "application/json" },
+          body: JSON.stringify({ type, ids })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const j = await res.json();
+        if (!j || j.ok !== true || !j.counts) throw new Error("bad json");
+        lastCountsOkAt = Date.now();
+        counterStatus = "";
+        return j.counts || {};
+      }catch{
+        return null; // kritik: mevcut sayacı silme
+      }
+    }
+
+    let refreshCountsTimer = null;
+    function scheduleRefreshCounts(ms = 800){
+      clearTimeout(refreshCountsTimer);
+      refreshCountsTimer = setTimeout(() => refreshAllCounts().catch(()=>{}), ms);
+    }
+
+    async function refreshAllCounts(){
+      if (!items.length) return;
+
+      const ids = items.map(it => it.id);
+      const parts = chunk(ids, 200);
+
+      const playAll = { ...globalPlayCounts };
+      const dlAll   = { ...globalDownloadCounts };
+
+      let anyOk = false;
+
+      for (const part of parts){
+        const [p, d] = await Promise.all([
+          fetchCounts("play", part),
+          fetchCounts("download", part),
+        ]);
+
+        if (p && typeof p === "object"){
+          anyOk = true;
+          for (const id of part) playAll[id] = Number(p[id]) || 0;
+        }
+        if (d && typeof d === "object"){
+          anyOk = true;
+          for (const id of part) dlAll[id] = Number(d[id]) || 0;
+        }
+      }
+
+      if (anyOk){
+        globalPlayCounts = playAll;
+        globalDownloadCounts = dlAll;
+        counterStatus = "";
+      } else {
+        counterStatus = "Sayaç bağlantısı geçici olarak yok (değerler korunuyor).";
+      }
+
+      render();
+    }
+
+    function sendHit(type, it){
+      try{
+        const payload = {
+          type,
+          id: it?.id || "",
+          title: it?.title || "",
+          file_name: (it?.name || it?.file || "").split("/").pop() || ""
+        };
+
+        const url = COUNTER_API + "/hit";
+        const data = JSON.stringify(payload);
+
+        if (IS_SAFARI && navigator.sendBeacon){
+          const ok = navigator.sendBeacon(url, new Blob([data], { type: "text/plain;charset=utf-8" }));
+          if (ok) return;
+        }
+
+        fetch(url, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-store",
+          keepalive: true,
+          headers: { "content-type": IS_SAFARI ? "text/plain;charset=utf-8" : "application/json" },
+          body: data
+        }).catch(() => {});
+      }catch{}
+    }
+
+    function bumpLocalGlobalCount(type, id){
+      if (!id) return;
+      if (type === "play"){
+        globalPlayCounts[id] = (Number(globalPlayCounts[id]) || 0) + 1;
+      } else {
+        globalDownloadCounts[id] = (Number(globalDownloadCounts[id]) || 0) + 1;
+      }
+    }
+
+    // Play sayımı: gerçekten "playing" olunca 1 kez
+    let playGate = { id: null, armed: false, sent: false };
+    function armPlayGate(it){
+      playGate = { id: it?.id || null, armed: true, sent: false };
+    }
+    function trySendPlayOnPlaying(){
+      if (!playGate.armed || playGate.sent || !playGate.id) return;
+      if (!playerEl || playerEl.paused) return;
+
+      playGate.sent = true;
+      const it = items.find(x => x.id === playGate.id) || { id: playGate.id, title:"", name:"" };
+      bumpLocalGlobalCount("play", it.id);
+      sendHit("play", it);
+      scheduleRefreshCounts(1200);
+      render();
+    }
+    playerEl.addEventListener("playing", trySendPlayOnPlaying);
+
+    // =========================
+    // LOCAL STORAGE
+    // =========================
+    const LS = {
+      favs:  "fsp3.favs.v2",
+      pos:   "fsp3.fp.pos.v2",
+      durs:  "fsp3.durs.v2",
+      sortMode: "fsp3.sort.mode.v2",
+      sortDirDur: "fsp3.sort.dur.dir.v1",
+      sortDirDate: "fsp3.sort.date.dir.v1",
+      sortDirPlay: "fsp3.sort.play.dir.v1",
+      sortDirDl:   "fsp3.sort.dl.dir.v1",
+      speed: "fsp3.speed.v1",
+      zoom:  "fsp3.ui.zoom.v1",
+
+      // SOURCE LIST CACHE (All-in-One)
+      itemsS1:   "fsp3.items.S1.v1",
+      itemsS1At: "fsp3.items.S1.at.v1",
+      itemsS2:   "fsp3.items.S2.v1",
+      itemsS2At: "fsp3.items.S2.at.v1",
+    };
+
+    const loadMap = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
+    const saveMap = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+    function loadAny(k){
+      try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; }
+    }
+    function saveAny(k, v){
+      localStorage.setItem(k, JSON.stringify(v));
+    }
+    function loadAt(k){
+      const n = Number(localStorage.getItem(k) || "0");
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    let favs  = loadMap(LS.favs);
+    let durs  = loadMap(LS.durs);
+
+    let filterFav  = false;
+
+    let items = [];
+    let activeId = null;
+
+    let sortMode = localStorage.getItem(LS.sortMode) || "date";
+    let durSortDir  = (localStorage.getItem(LS.sortDirDur) === "desc") ? "desc" : "asc";
+    let dateSortDir = (localStorage.getItem(LS.sortDirDate) === "asc") ? "asc" : "desc";
+    let playSortDir = (localStorage.getItem(LS.sortDirPlay) === "asc") ? "asc" : "desc";
+    let dlSortDir   = (localStorage.getItem(LS.sortDirDl) === "asc") ? "asc" : "desc";
+
+    if (!localStorage.getItem(LS.sortMode)) localStorage.setItem(LS.sortMode, sortMode);
+    if (!localStorage.getItem(LS.sortDirDate)) localStorage.setItem(LS.sortDirDate, dateSortDir);
+    if (!localStorage.getItem(LS.sortDirPlay)) localStorage.setItem(LS.sortDirPlay, playSortDir);
+    if (!localStorage.getItem(LS.sortDirDl)) localStorage.setItem(LS.sortDirDl, dlSortDir);
+
+    // =========================
+    // SPEED
+    // =========================
+    const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25, 1.5, 1.75, 2.0, 2.25];
+    let speedIndex = SPEEDS.indexOf(1);
+
+    function fmtSpeed(v){
+      const s = (Math.round(v * 100) / 100).toString();
+      return s.replace(/\.0+$/,"") + "×";
+    }
+
+    function setSpeedUI(v){
+      speedValueEl.textContent = fmtSpeed(v);
+      speedValueEl.classList.add("on");
+      slowBtn.disabled = (speedIndex <= 0);
+      fastBtn.disabled = (speedIndex >= SPEEDS.length - 1);
+      slowBtn.style.opacity = slowBtn.disabled ? 0.45 : 1;
+      fastBtn.style.opacity = fastBtn.disabled ? 0.45 : 1;
+    }
+
+    function applySpeedByIndex(idx){
+      speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, idx));
+      const v = SPEEDS[speedIndex];
+      plyr.speed = v;
+      localStorage.setItem(LS.speed, String(v));
+      setSpeedUI(v);
+    }
+
+    function restoreSpeed(){
+      const saved = Number(localStorage.getItem(LS.speed) || "1");
+      if (Number.isFinite(saved)){
+        const i = SPEEDS.findIndex(x => Math.abs(x - saved) < 0.001);
+        applySpeedByIndex(i === -1 ? SPEEDS.indexOf(1) : i);
+      } else {
+        applySpeedByIndex(SPEEDS.indexOf(1));
+      }
+    }
+
+    slowBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex - 1); });
+    fastBtn.addEventListener("click", (e) => { e.stopPropagation(); applySpeedByIndex(speedIndex + 1); });
+
+    // =========================
+    // ZOOM
+    // =========================
+    const ZOOMS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2];
+    let zoomIndex = ZOOMS.indexOf(1);
+    let uiScale = 1;
+    let useTransformScale = false;
+
+    function setZoomUI(v){
+      const pct = Math.round(v * 100) + "%";
+      zoomOutBtn.disabled = (zoomIndex <= 0);
+      zoomInBtn.disabled  = (zoomIndex >= ZOOMS.length - 1);
+
+      zoomOutBtn.classList.toggle("enabled", !zoomOutBtn.disabled);
+      zoomInBtn.classList.toggle("enabled", !zoomInBtn.disabled);
+
+      zoomOutBtn.title = `Küçült (${pct})`;
+      zoomInBtn.title  = `Büyüt (${pct})`;
+      zoomOutBtn.setAttribute("aria-label", `Küçült (${pct})`);
+      zoomInBtn.setAttribute("aria-label", `Büyüt (${pct})`);
+    }
+
+    function applyZoomByIndex(idx){
+      zoomIndex = Math.max(0, Math.min(ZOOMS.length - 1, idx));
+      const v = ZOOMS[zoomIndex];
+      uiScale = v;
+
+      useTransformScale = !(window.CSS && CSS.supports && CSS.supports("zoom", "1"));
+
+      if (!useTransformScale){
+        document.documentElement.style.zoom = String(v);
+        appScaleEl.style.transform = "";
+        fp.style.transform = "";
+      } else {
+        document.documentElement.style.zoom = "";
+        appScaleEl.style.transform = `scale(${v})`;
+        fp.style.transform = `scale(${v})`;
+      }
+
+      localStorage.setItem(LS.zoom, String(v));
+      setZoomUI(v);
+      setTimeout(() => clampPlayerToViewport(), 0);
+    }
+
+    function restoreZoom(){
+      const saved = Number(localStorage.getItem(LS.zoom) || "1");
+      if (Number.isFinite(saved)){
+        const i = ZOOMS.findIndex(x => Math.abs(x - saved) < 0.001);
+        applyZoomByIndex(i === -1 ? ZOOMS.indexOf(1) : i);
+      } else {
+        applyZoomByIndex(ZOOMS.indexOf(1));
+      }
+    }
+
+    function resetZoom100(){ applyZoomByIndex(ZOOMS.indexOf(1)); }
+
+    function attachDoubleTapReset(el){
+      el.addEventListener("dblclick", (e) => { e.preventDefault(); resetZoom100(); });
+      let lastTap = 0;
+      el.addEventListener("touchend", (e) => {
+        const now = Date.now();
+        if (now - lastTap < 320){
+          e.preventDefault();
+          resetZoom100();
+          lastTap = 0;
+          return;
+        }
+        lastTap = now;
+      }, { passive: false });
+    }
+
+    zoomOutBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex - 1); });
+    zoomInBtn.addEventListener("click", (e) => { e.stopPropagation(); applyZoomByIndex(zoomIndex + 1); });
+    attachDoubleTapReset(zoomOutBtn);
+    attachDoubleTapReset(zoomInBtn);
+
+    // Search focus -> player sakla
+    function setTypingMode(on){ fp.classList.toggle("hiddenWhileTyping", !!on); }
+    searchEl.addEventListener("focus", () => setTypingMode(true));
+    searchEl.addEventListener("blur",  () => setTypingMode(false));
+
+    // =========================
+    // HELPERS
+    // =========================
+    function escHtml(s){
+      return (s ?? "").toString()
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+
+    function highlightDisease(title){
+      const raw = (title ?? "").toString();
+      const m = raw.match(/\b(dr|fr)\b\.?/i);
+      if (!m || m.index == null) return escHtml(raw);
+
+      const i = m.index;
+      const leftRaw = raw.slice(0, i);
+      const leftTrim = leftRaw.trimEnd();
+      if (!leftTrim.trim()) return escHtml(raw);
+
+      const trailing = leftRaw.slice(leftTrim.length);
+      return `<span class="diseaseName">${escHtml(leftTrim)}</span>${escHtml(trailing)}${escHtml(raw.slice(i))}`;
+    }
+
+    function foldTR(s){
+      s = (s || "").toString();
+      s = s.toLocaleLowerCase("tr");
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      s = s.replace(/ı/g, "i");
+      s = s.replace(/\s+/g, " ").trim();
+      return s;
+    }
+
+    function guessMime(url){
+      try{
+        const p = new URL(url).pathname.toLowerCase();
+        if (p.endsWith(".mp3")) return "audio/mpeg";
+        if (p.endsWith(".m4a")) return "audio/mp4";
+      }catch{}
+      return "audio/*";
+    }
+
+    function fmtDur(sec){
+      if (!Number.isFinite(sec) || sec <= 0) return "—";
+      sec = Math.round(sec);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      const mm = String(m).padStart(2, "0");
+      const ss = String(s).padStart(2, "0");
+      if (h > 0) return `${h}:${mm}:${ss}`;
+      return `${m}:${ss}`;
+    }
+
+    function decodeURIComponentSafe(s){
+      try { return decodeURIComponent(s); } catch { return s; }
+    }
+function ia3IsBlockedByPrefix(fileName){
+  let base = (fileName || "").toString();
+  base = base.split("/").pop() || base;
+  base = decodeURIComponentSafe(base);
+  base = base.replace(/\.(m4a|mp3)$/i, "").trim();
+  base = base.replace(/^A[\s_-]+/i, "").trim(); // A / A_ / A-
+
+  const folded = foldTR(base);
+  for (const p of IA3_BLOCK_PREFIXES){
+    const c = foldTR(p);
+    if (!c) continue;
+    if (folded.startsWith(c)){
+      const next = folded.slice(c.length, c.length + 1);
+      if (!next || /[\s\-_0-9.:]/.test(next)) return true;
+    }
+  }
+  return false;
+}
+    function parseEndDate(item){
+      const raw0 = (item.name || item.file || item.title || "").toString();
+      let s;
+      try { s = decodeURIComponent(raw0.split("/").pop() || raw0); } catch { s = raw0; }
+
+      s = s.replace(/\.(mp3|m4a|wav|aac|ogg|flac)$/i, "").trim();
+      s = s.normalize("NFKC").replace(/\u00A0/g, " ").trim();
+      s = s.trim().replace(/[)\]\s]+$/g, "").trim();
+
+      const m = s.match(/(\d{1,2})[.\-_\u00B7](\d{1,2})[.\-_\u00B7](\d{2}|\d{4})\s*$/);
+      if (!m) return null;
+
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      let yy = Number(m[3]);
+      if (yy < 100) yy = 2000 + yy;
+      if (!(dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12)) return null;
+
+      const t = Date.UTC(yy, mm - 1, dd);
+      if (!Number.isFinite(t)) return null;
+
+      const d = new Date(t);
+      if (d.getUTCFullYear() !== yy || (d.getUTCMonth() + 1) !== mm || d.getUTCDate() !== dd) return null;
+      return t;
+    }
+
+    function setArrowIcon(svgEl, isAsc) {
+      if (!svgEl) return;
+      while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+
+      const ns = "http://www.w3.org/2000/svg";
+      const mkPath = (d) => {
+        const p = document.createElementNS(ns, "path");
+        p.setAttribute("d", d);
+        p.setAttribute("fill", "none");
+        p.setAttribute("stroke", "currentColor");
+        p.setAttribute("stroke-width", "2");
+        p.setAttribute("stroke-linecap", "round");
+        p.setAttribute("stroke-linejoin", "round");
+        return p;
+      };
+
+      svgEl.setAttribute("viewBox", "0 0 24 24");
+      svgEl.setAttribute("aria-hidden", "true");
+      svgEl.setAttribute("focusable", "false");
+
+      svgEl.appendChild(mkPath(isAsc ? "M12 19V5" : "M12 5v14"));
+      svgEl.appendChild(mkPath(isAsc ? "M7 10l5-5 5 5" : "M7 14l5 5 5-5"));
+    }
+
+    function setSortIcons(){
+      sortDurBtn.classList.remove("on");
+      sortDateBtn.classList.remove("on");
+      sortPlayBtn.classList.remove("on");
+      sortDlCountBtn.classList.remove("on");
+
+      setArrowIcon(sortDurIcon, durSortDir === "asc");
+      setArrowIcon(sortDateIcon, dateSortDir === "asc");
+      setArrowIcon(sortPlayIcon, playSortDir === "asc");
+      setArrowIcon(sortDlCountIcon, dlSortDir === "asc");
+
+      if (sortMode === "dur") sortDurBtn.classList.add("on");
+      if (sortMode === "date") sortDateBtn.classList.add("on");
+      if (sortMode === "play") sortPlayBtn.classList.add("on");
+      if (sortMode === "download") sortDlCountBtn.classList.add("on");
+    }
+
+    sortDurBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (sortMode !== "dur") sortMode = "dur";
+      else durSortDir = (durSortDir === "asc") ? "desc" : "asc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirDur, durSortDir);
+      setSortIcons();
+      render();
+    });
+
+    sortDateBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (sortMode !== "date") sortMode = "date";
+      else dateSortDir = (dateSortDir === "asc") ? "desc" : "asc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirDate, dateSortDir);
+      setSortIcons();
+      render();
+    });
+
+    sortPlayBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (sortMode !== "play") sortMode = "play";
+      else playSortDir = (playSortDir === "asc") ? "desc" : "asc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirPlay, playSortDir);
+      setSortIcons();
+      render();
+    });
+
+    sortDlCountBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (sortMode !== "download") sortMode = "download";
+      else dlSortDir = (dlSortDir === "asc") ? "desc" : "asc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirDl, dlSortDir);
+      setSortIcons();
+      render();
+    });
+
+    // =========================
+    // DURATION LOADER
+    // =========================
+    const durQueue = [];
+    const durLoading = new Set();
+    let durActive = 0;
+    const DUR_CONCURRENCY = 2;
+    let rerenderTimer = null;
+
+    function scheduleRerender(){
+      if (rerenderTimer) return;
+      rerenderTimer = setTimeout(() => {
+        rerenderTimer = null;
+        render();
+      }, 120);
+    }
+
+    function requestDuration(it){
+      const id = it.id;
+      if (durs[id] > 0) return;
+      if (durLoading.has(id)) return;
+      durLoading.add(id);
+      durQueue.push(it);
+      pumpDurationQueue();
+    }
+
+    function pumpDurationQueue(){
+      while (durActive < DUR_CONCURRENCY && durQueue.length){
+        const it = durQueue.shift();
+        durActive++;
+        loadDurationFor(it).catch(() => {}).finally(() => {
+          durActive--;
+          pumpDurationQueue();
+        });
+      }
+    }
+
+    function loadDurationFor(it){
+      return new Promise((resolve, reject) => {
+        const a = new Audio();
+        a.preload = "metadata";
+        a.src = it.url;
+
+        let done = false;
+
+        const cleanup = () => {
+          a.removeEventListener("loadedmetadata", onMeta);
+          a.removeEventListener("error", onErr);
+          try { a.src = ""; } catch {}
+        };
+
+        const finish = (ok, err) => {
+          if (done) return;
+          done = true;
+          cleanup();
+          durLoading.delete(it.id);
+          ok ? resolve() : reject(err || new Error("metadata error"));
+        };
+
+        const onMeta = () => {
+          const dur = a.duration;
+          if (Number.isFinite(dur) && dur > 0){
+            durs[it.id] = dur;
+            saveMap(LS.durs, durs);
+            scheduleRerender();
+          }
+          finish(true);
+        };
+
+        const onErr = () => finish(false, new Error("metadata error"));
+
+        a.addEventListener("loadedmetadata", onMeta, { once: true });
+        a.addEventListener("error", onErr, { once: true });
+
+        setTimeout(() => {
+          if (!done) finish(false, new Error("timeout"));
+        }, 12000);
+      });
+    }
+
+    // =========================
+    // DOWNLOAD
+    // =========================
+    function makeProxyUrl(fileUrl, filename){
+      const u = DL_PROXY + "?u=" + encodeURIComponent(fileUrl);
+      return filename ? (u + "&f=" + encodeURIComponent(filename)) : u;
+    }
+
+    function clickDownload(href, filename){
+      const a = document.createElement("a");
+      a.href = href;
+      a.rel = "noopener";
+      a.target = "_blank";
+      if (filename) a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function forceDownload(fileUrl, filename){
+      const proxied = makeProxyUrl(fileUrl, filename);
+      try{
+        clickDownload(proxied, filename);
+        return;
+      }catch{}
+
+      try{
+        const res = await fetch(proxied, { mode: "cors", cache: "no-store" });
+        if (!res.ok) throw new Error("fetch failed");
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        clickDownload(url, filename);
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }catch{
+        window.location.href = fileUrl;
+      }
+    }
+
+    function buildDownloadUrl(identifier, name){
+      const parts = (name || "").split("/").map(p => encodeURIComponent(p));
+      return `https://archive.org/download/${identifier}/${parts.join("/")}`;
+    }
+
+    // =========================
+    // LOAD SOURCE (CACHE + TTL)
+    // =========================
+    async function loadSource(identifier, prefix, opts){
+      const cacheKey   = opts?.cacheKey   || "";
+      const cacheAtKey = opts?.cacheAtKey || "";
+      const ttlMs      = Number(opts?.ttlMs || 0);
+      const never      = !!opts?.neverChanges;
+
+      const cached = cacheKey ? loadAny(cacheKey) : null;
+      const hasCache = Array.isArray(cached) && cached.length > 0;
+
+      const at = cacheAtKey ? loadAt(cacheAtKey) : 0;
+      const isFresh = never ? hasCache : (hasCache && ttlMs > 0 && (Date.now() - at) < ttlMs);
+
+      // Cache tazeyse ve refresh yoksa: NET'E ÇIKMA
+      if (!FORCE_REFRESH && isFresh){
+        return cached;
+      }
+
+      // Taze değilse: fetch dene. Hata olursa cache varsa onu döndür.
+      try{
+        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
+        const res = await fetch(metaUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
+        const j = await res.json();
+
+        const files = Array.isArray(j.files) ? j.files : [];
+        const list = files
+          .filter(f => {
+            const name = (f.name || "").toLowerCase();
+            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+            if (!("source" in f)) return true;
+            return (String(f.source).toLowerCase() === "original");
+          })
+          .map((f, idx) => {
+            const name = f.name || "";
+            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+            const url = buildDownloadUrl(identifier, name);
+            const localId = name || url || (title + "#" + idx);
+            const id = prefix + "|" + localId;
+            return { id, title, name, url, src: prefix };
+          });
+
+        // cache yaz
+        if (cacheKey){
+          try{
+            localStorage.setItem(cacheAtKey, String(Date.now()));
+            saveAny(cacheKey, list);
+          }catch{}
+        }
+
+        return list;
+      }catch(err){
+        if (hasCache) return cached;
+        throw err;
+      }
+    }
+
+    // =========================
+    // LOAD ITEMS (All-in-One)
+    // =========================
+    async function loadItems(){
+      // Cache varsa ilk açılışta "Yükleniyor..." yazma (flicker azalır)
+      const c1 = loadAny(LS.itemsS1);
+      const c2 = loadAny(LS.itemsS2);
+      const hasAnyCache =
+        (Array.isArray(c1) && c1.length) ||
+        (Array.isArray(c2) && c2.length);
+
+      statusEl.textContent = hasAnyCache ? "" : "Yükleniyor...";
+
+      try{
+        const [a1, a2] = await Promise.allSettled([
+          loadSource(IA_IDENTIFIER_1, "S1", {
+            cacheKey: LS.itemsS1,
+            cacheAtKey: LS.itemsS1At,
+            ttlMs: S1_CACHE_TTL_MS,
+            neverChanges: false
+          }),
+          loadSource(IA_IDENTIFIER_2, "S2", {
+            cacheKey: LS.itemsS2,
+            cacheAtKey: LS.itemsS2At,
+            ttlMs: 0,
+            neverChanges: S2_NEVER_CHANGES
+          }),
+        ]);
+
+        const list = [];
+        if (a1.status === "fulfilled") list.push(...a1.value);
+        if (a2.status === "fulfilled") list.push(...a2.value);
+
+        items = list;
+        // ✅ S3: FSPneu ekle (şehir/eyalet önek filtresi ile)
+try{
+  const s3 = await loadSource(IA_IDENTIFIER_3, "S3", {
+    cacheKey: "fsp3.items.S3.v1",
+    cacheAtKey: "fsp3.items.S3.at.v1",
+    ttlMs: 24 * 60 * 60 * 1000,
+    neverChanges: false
+  });
+
+  if (Array.isArray(s3) && s3.length){
+    items = items.concat(
+      s3.filter(it => !ia3IsBlockedByPrefix(it?.name || it?.title || ""))
+    );
+  }
+}catch(e){
+  console.warn("FSPneu (S3) yüklenemedi:", e);
+}
+        statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
+        setSortIcons();
+        render();
+        scheduleRefreshCounts(100);
+      }catch(err){
+        console.error(err);
+
+        // Son çare: cache ile aç (varsa)
+        const fallback = [];
+        if (Array.isArray(c1)) fallback.push(...c1);
+        if (Array.isArray(c2)) fallback.push(...c2);
+
+        if (fallback.length){
+          items = fallback;
+          statusEl.textContent = "";
+          setSortIcons();
+          render();
+          scheduleRefreshCounts(120);
+          return;
+        }
+
+        statusEl.textContent = "Liste yüklenemedi.";
+      }
+    }
+
+    // =========================
+    // UI / LIST
+    // =========================
+    function getVisibleItems(){
+      const q = foldTR((searchEl.value || "").trim());
+
+      let arr = items.filter(it => {
+        if (q && !foldTR(it.title).includes(q)) return false;
+        if (filterFav && !favs[it.id]) return false;
+        return true;
+      });
+
+      if (sortMode === "dur"){
+        const dir = (durSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ha = (durs[a.id] > 0);
+          const hb = (durs[b.id] > 0);
+          if (ha !== hb) return ha ? -1 : 1;
+          if (ha && hb){
+            const da = durs[a.id];
+            const db = durs[b.id];
+            if (da !== db) return (da - db) * dir;
+          }
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "date"){
+        const dir = (dateSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ta = parseEndDate(a);
+          const tb = parseEndDate(b);
+          const ha = (ta !== null);
+          const hb = (tb !== null);
+          if (ha !== hb) return ha ? -1 : 1;
+          if (ha && hb && ta !== tb) return (ta - tb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "play"){
+        const dir = (playSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ca = Number(globalPlayCounts[a.id]) || 0;
+          const cb = Number(globalPlayCounts[b.id]) || 0;
+          if (ca !== cb) return (ca - cb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else if (sortMode === "download"){
+        const dir = (dlSortDir === "asc") ? 1 : -1;
+        arr.sort((a,b) => {
+          const ca = Number(globalDownloadCounts[a.id]) || 0;
+          const cb = Number(globalDownloadCounts[b.id]) || 0;
+          if (ca !== cb) return (ca - cb) * dir;
+          return a.title.localeCompare(b.title, "tr");
+        });
+      } else {
+        arr.sort((a,b) => a.title.localeCompare(b.title, "tr"));
+      }
+
+      return arr;
+    }
+
+    function render(){
+      const visible = getVisibleItems();
+      metaEl.textContent = `Görünən: ${visible.length} / Toplam: ${items.length}`;
+
+      filterFavBtn.classList.toggle("on", filterFav);
+      filterFavBtn.setAttribute("aria-pressed",  String(filterFav));
+
+      listEl.innerHTML = "";
+
+      const toMeasure = (sortMode === "dur") ? items : visible;
+      for (const it of toMeasure){
+        if (!(durs[it.id] > 0)) requestDuration(it);
+      }
+
+      for (const it of visible){
+        const row = document.createElement("div");
+        row.className = "itemRow" + (it.id === activeId ? " active" : "");
+
+        const title = document.createElement("div");
+        title.className = "title";
+        title.innerHTML = highlightDisease(it.title);
+
+        const dur = document.createElement("div");
+        dur.className = "dur";
+        dur.textContent = (durs[it.id] > 0) ? fmtDur(durs[it.id]) : "…";
+
+        const playCount = document.createElement("div");
+        playCount.className = "countCell";
+        playCount.textContent = String(Number(globalPlayCounts[it.id]) || 0);
+
+        const favBtn = iconButton("star", !!favs[it.id], "Favori");
+        const dlBtn  = iconButton("download", false, "İndir");
+
+        const dlCount = document.createElement("div");
+        dlCount.className = "countCell";
+        dlCount.textContent = String(Number(globalDownloadCounts[it.id]) || 0);
+
+        favBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          favs[it.id] = !favs[it.id];
+          saveMap(LS.favs, favs);
+          render();
+        });
+
+        dlBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const filename =
+            (it.name || it.file || "").split("/").pop() ||
+            (it.title || "audio").replace(/[\\/:*?"<>|]+/g, "_") + ".m4a";
+
+          forceDownload(it.url, filename);
+
+          setTimeout(() => {
+            bumpLocalGlobalCount("download", it.id);
+            sendHit("download", it);
+            scheduleRefreshCounts(1200);
+            render();
+          }, 0);
+        });
+
+        for (const b of [favBtn, dlBtn]){
+          b.addEventListener("pointerup", (e) => e.stopPropagation());
+          b.addEventListener("pointerdown", (e) => e.stopPropagation());
+        }
+
+        row.appendChild(title);
+        row.appendChild(dur);
+        row.appendChild(playCount);
+        row.appendChild(favBtn);
+        row.appendChild(dlBtn);
+        row.appendChild(dlCount);
+
+        row.addEventListener("click", () => playById(it.id));
+        listEl.appendChild(row);
+      }
+
+      const cur = (statusEl.textContent || "").trim();
+      if (counterStatus){
+        if (!cur || cur.startsWith("Sayaç")) statusEl.textContent = counterStatus;
+      } else {
+        if (cur.startsWith("Sayaç")) statusEl.textContent = "";
+      }
+    }
+
+    function iconButton(kind, on, title){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "iconBtn" + (on ? " on" : "");
+      btn.title = title;
+      btn.dataset.kind = kind;
+
+      if (kind === "star"){
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/>
+          </svg>`;
+      } else if (kind === "download"){
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 3v12"/>
+            <path d="M7 10l5 5 5-5"/>
+            <path d="M5 21h14"/>
+          </svg>`;
+      }
+
+      return btn;
+    }
+
+    function playById(id){
+      const visible = getVisibleItems();
+      const idx = visible.findIndex(x => x.id === id);
+      if (idx === -1) return;
+      playAtVisibleIndex(idx);
+    }
+
+    function setMediaSource(url, mime){
+      while (playerEl.firstChild) playerEl.removeChild(playerEl.firstChild);
+      const s = document.createElement("source");
+      s.src = url;
+      if (mime) s.type = mime;
+      playerEl.appendChild(s);
+      playerEl.load();
+    }
+
+    function playAtVisibleIndex(idx){
+      const visible = getVisibleItems();
+      const it = visible[idx];
+      if (!it) return;
+
+      armPlayGate(it);
+
+      statusEl.textContent = "";
+      activeId = it.id;
+      fpTitle.textContent = it.title;
+      render();
+
+      const url = it.url;
+      const mime = guessMime(url);
+      const currentSpeed = SPEEDS[speedIndex] || 1;
+
+      try{
+        plyr.speed = currentSpeed;
+        setMediaSource(url, mime);
+        const p = plyr.play();
+        if (p && typeof p.catch === "function"){
+          p.catch(() => {
+            statusEl.textContent = "Oynatma engellendi. Player içindeki ▶︎ tuşuna bas.";
+          });
+        }
+        setTimeout(() => {
+          if (playerEl && playerEl.paused) {
+            statusEl.textContent = statusEl.textContent || "Oynatma başlamadı. Player içindeki ▶︎ tuşuna bas.";
+          }
+        }, 900);
+      }catch{
+        statusEl.textContent = "Player başlatılamadı.";
+      }
+    }
+
+    function playPrev(){
+      const visible = getVisibleItems();
+      if (!visible.length) return;
+      let idx = visible.findIndex(x => x.id === activeId);
+      if (idx === -1) idx = 0;
+      idx = (idx - 1 + visible.length) % visible.length;
+      playAtVisibleIndex(idx);
+    }
+
+    function playNext(){
+      const visible = getVisibleItems();
+      if (!visible.length) return;
+      let idx = visible.findIndex(x => x.id === activeId);
+      if (idx === -1) idx = 0;
+      idx = (idx + 1) % visible.length;
+      playAtVisibleIndex(idx);
+    }
+
+    prevBtn.addEventListener("click", playPrev);
+    nextBtn.addEventListener("click", playNext);
+    plyr.on("ended", () => { setTimeout(() => playNext(), 0); });
+
+    document.addEventListener("keydown", (e) => {
+      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+      const inTyping = (tag === "input" || tag === "textarea");
+      if (inTyping) return;
+
+      if (e.code === "Space"){
+        e.preventDefault();
+        plyr.togglePlay();
+      } else if (e.code === "ArrowLeft"){
+        e.preventDefault();
+        playPrev();
+      } else if (e.code === "ArrowRight"){
+        e.preventDefault();
+        playNext();
+      }
+    });
+
+    filterFavBtn.addEventListener("click", () => { filterFav = !filterFav; render(); });
+
+    resetBtn.addEventListener("click", () => {
+      filterFav = false;
+      searchEl.value = "";
+
+      sortMode = "date";
+      dateSortDir = "desc";
+      localStorage.setItem(LS.sortMode, sortMode);
+      localStorage.setItem(LS.sortDirDate, dateSortDir);
+
+      setSortIcons();
+      render();
+    });
+
+    const SEARCH_DEBOUNCE_MS = 900;
+    let searchTimer = null;
+
+    searchEl.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => render(), SEARCH_DEBOUNCE_MS);
+    });
+
+    searchEl.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      clearTimeout(searchTimer);
+      render();
+    });
+
+    // =========================
+    // DRAGGABLE PLAYER (zoom uyumlu)
+    // =========================
+    function restorePlayerPos(){
+      try{
+        const s = JSON.parse(localStorage.getItem(LS.pos) || "null");
+        if (!s) return;
+        if (typeof s.x === "number" && typeof s.y === "number"){
+          fp.style.left = s.x + "px";
+          fp.style.top = s.y + "px";
+          fp.style.bottom = "auto";
+          fp.style.right = "auto";
+        }
+      }catch{}
+    }
+
+    function savePlayerPos(x,y){
+      localStorage.setItem(LS.pos, JSON.stringify({x,y}));
+    }
+
+    function getViewportWH(){
+      const vv = window.visualViewport;
+      const vw = (vv && vv.width)  ? vv.width  : window.innerWidth;
+      const vh = (vv && vv.height) ? vv.height : window.innerHeight;
+      return { vw, vh };
+    }
+
+    function toLayoutPx(v){
+      return useTransformScale ? (v / uiScale) : v;
+    }
+
+    function clampPlayerToViewport(){
+      const { vw, vh } = getViewportWH();
+
+      const vwL = toLayoutPx(vw);
+      const vhL = toLayoutPx(vh);
+
+      const wL = fp.offsetWidth;
+      const hL = fp.offsetHeight;
+
+      const minX = 8;
+      const minY = 8;
+      const maxX = Math.max(minX, vwL - wL - 8);
+      const maxY = Math.max(minY, vhL - hL - 8);
+
+      const left = parseFloat(fp.style.left);
+      const top  = parseFloat(fp.style.top);
+      if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+
+      const nx = Math.min(maxX, Math.max(minX, left));
+      const ny = Math.min(maxY, Math.max(minY, top));
+
+      fp.style.left = nx + "px";
+      fp.style.top  = ny + "px";
+      fp.style.right = "auto";
+      fp.style.bottom = "auto";
+
+      savePlayerPos(nx, ny);
+    }
+
+    const DRAG_IGNORE_SELECTOR =
+      "button, a, input, textarea, select, option, " +
+      ".speedWrap, .speedCtlBtn, .miniBtn, " +
+      ".plyr__controls, .plyr__control, .plyr__progress, .plyr__seek, .plyr__volume, .plyr__time, .plyr__menu";
+
+    function shouldStartDrag(target){
+      return !(target && target.closest && target.closest(DRAG_IGNORE_SELECTOR));
+    }
+
+    let dragging = false;
+    let startClientX = 0, startClientY = 0;
+    let startLeft = 0, startTop = 0;
+    let moved = false;
+    let suppressClickUntil = 0;
+
+    function getCurrentLeftTopLayout(){
+      const left = parseFloat(fp.style.left);
+      const top  = parseFloat(fp.style.top);
+      if (Number.isFinite(left) && Number.isFinite(top)) return { left, top };
+
+      const rect = fp.getBoundingClientRect();
+      const l = useTransformScale ? (rect.left / uiScale) : rect.left;
+      const t = useTransformScale ? (rect.top  / uiScale) : rect.top;
+      return { left: l, top: t };
+    }
+
+    fp.addEventListener("pointerdown", (e) => {
+      if (!shouldStartDrag(e.target)) return;
+
+      dragging = true;
+      moved = false;
+
+      fp.setPointerCapture(e.pointerId);
+      fpHeader.style.cursor = "grabbing";
+
+      startClientX = e.clientX;
+      startClientY = e.clientY;
+
+      const cur = getCurrentLeftTopLayout();
+      startLeft = cur.left;
+      startTop  = cur.top;
+
+      fp.style.left = startLeft + "px";
+      fp.style.top  = startTop + "px";
+      fp.style.bottom = "auto";
+      fp.style.right  = "auto";
+    });
+
+    fp.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+
+      const dxClient = e.clientX - startClientX;
+      const dyClient = e.clientY - startClientY;
+
+      const dx = useTransformScale ? (dxClient / uiScale) : dxClient;
+      const dy = useTransformScale ? (dyClient / uiScale) : dyClient;
+
+      if (!moved && (Math.abs(dxClient) + Math.abs(dyClient) > 6)) moved = true;
+
+      const { vw, vh } = getViewportWH();
+      const vwL = toLayoutPx(vw);
+      const vhL = toLayoutPx(vh);
+
+      const wL = fp.offsetWidth;
+      const hL = fp.offsetHeight;
+
+      const minX = 8;
+      const minY = 8;
+      const maxX = Math.max(minX, vwL - wL - 8);
+      const maxY = Math.max(minY, vhL - hL - 8);
+
+      const nx = Math.min(maxX, Math.max(minX, startLeft + dx));
+      const ny = Math.min(maxY, Math.max(minY, startTop  + dy));
+
+      fp.style.left = nx + "px";
+      fp.style.top  = ny + "px";
+      savePlayerPos(nx, ny);
+    });
+
+    function endDrag(pointerId){
+      if (!dragging) return;
+      dragging = false;
+      fpHeader.style.cursor = "grab";
+
+      try { fp.releasePointerCapture(pointerId); } catch {}
+      clampPlayerToViewport();
+
+      if (moved){
+        suppressClickUntil = Date.now() + 350;
+        moved = false;
+      }
+    }
+
+    fp.addEventListener("pointerup", (e) => endDrag(e.pointerId));
+    fp.addEventListener("pointercancel", (e) => endDrag(e.pointerId));
+
+    fp.addEventListener("click", (e) => {
+      if (Date.now() < suppressClickUntil){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    window.addEventListener("resize", () => clampPlayerToViewport());
+    window.addEventListener("orientationchange", () => setTimeout(clampPlayerToViewport, 150));
+    if (window.visualViewport){
+      window.visualViewport.addEventListener("resize", () => clampPlayerToViewport());
+    }
+
+    (function disablePullToRefresh(){
+      let startY = 0;
+      scrollArea.addEventListener("touchstart", (e) => {
+        if (!e.touches || !e.touches.length) return;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      scrollArea.addEventListener("touchmove", (e) => {
+        if (!e.touches || !e.touches.length) return;
+        const y = e.touches[0].clientY;
+
+        if (scrollArea.scrollTop <= 0 && y > startY + 4){
+          e.preventDefault();
+        }
+      }, { passive: false });
+    })();
+
+    (function setActiveNav(){
+      const here = location.href.replace(/\/$/, "");
+      document.querySelectorAll(".navRow .navLink").forEach(a => {
+        a.classList.remove("on");
+        const u = (a.getAttribute("href") || "").replace(/\/$/, "");
+        if (!u) return;
+        if (here === u || here.startsWith(u + "/")) a.classList.add("on");
+      });
+    })();
+
+    // INIT
+    setSortIcons();
+    restorePlayerPos();
+    restoreSpeed();
+    restoreZoom();
+    setTimeout(clampPlayerToViewport, 0);
+    loadItems();
+  </script>
+</body>
+</html>
