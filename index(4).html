@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FSP Audio — Güncel</title>
+  <title>FSP Audio — Birleşik Liste</title>
 
   <meta name="description" content="FSP Audio — Güncel kayıt listesi ve oynatıcı." />
   <meta property="og:type" content="website" />
@@ -1311,6 +1311,7 @@
     */
 
     const IA_IDENTIFIER_1 = "vorhofflimmern-bei-bekannter-khk-dr-oemer-dr-remzi-09.05.25";
+  
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
     const COUNTER_API = "https://fspdlcounter.protokolfsp.workers.dev";
     const SRT_INDEX_API = "https://api.github.com/repos/protokolFSP/FSPtranskript/contents/transcripts?ref=main";
@@ -1426,7 +1427,25 @@
       seekTime: 6.5,
       controls: ["rewind","play","fast-forward","progress","current-time","duration","mute","volume"]
     });
-
+// --- SAFE localStorage (Safari private / quota crash fix) ---
+const localStorage = (() => {
+  try{
+    const ls = window.localStorage;
+    const k = "__ls_test__";
+    ls.setItem(k, "1");
+    ls.removeItem(k);
+    return ls;
+  }catch{
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {}
+    };
+  }
+})();
+// --- /SAFE localStorage ---
+    
     function gaEvent(name, params = {}) {
       try {
         if (typeof gtag !== "function") return;
@@ -1607,11 +1626,11 @@
       zoom:  "fsp1.ui.zoom.v1",
       captionsMode: "fsp1.captions.mode.v1",
 
-      itemsCache:   "fsp1.items.cache.s1.v2",
-      itemsCacheAt: "fsp1.items.cache.s1.at.v1",
+      itemsCache:   "fsp1.items.cache.merged.v1",
+      itemsCacheAt: "fsp1.items.cache.merged.at.v1",
       metaUpdated:  "fsp1.items.meta.updated.s1.v1",
       uiState:      "fsp1.ui.state.v1",
-
+     
       txSize: "fsp1.tx.size.v1",
       txPos:  "fsp1.tx.pos.v1"
     };
@@ -2791,6 +2810,61 @@ function playSegment(start, end){
       return `https://archive.org/download/${identifier}/${parts.join("/")}`;
     }
 
+    async function loadSource(identifier, prefix, opts){
+  const cacheKey   = opts?.cacheKey   || "";
+  const cacheAtKey = opts?.cacheAtKey || "";
+  const ttlMs      = Number(opts?.ttlMs || 0);
+  const never      = !!opts?.neverChanges;
+
+  const cached = cacheKey ? loadAny(cacheKey) : null;
+  const hasCache = Array.isArray(cached) && cached.length > 0;
+
+  const at = cacheAtKey ? Number(localStorage.getItem(cacheAtKey) || "0") : 0;
+  const atOk = Number.isFinite(at) ? at : 0;
+
+  const isFresh = never ? hasCache : (hasCache && ttlMs > 0 && (Date.now() - atOk) < ttlMs);
+
+  if (!FORCE_REFRESH && isFresh){
+    return cached;
+  }
+
+  try{
+    const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
+    const res = await fetch(metaUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
+
+    const j = await res.json();
+    const files = Array.isArray(j.files) ? j.files : [];
+
+    const list = files
+      .filter(f => {
+        const name = (f.name || "").toLowerCase();
+        if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+        if (!("source" in f)) return true;
+        return (String(f.source).toLowerCase() === "original");
+      })
+      .map((f, idx) => {
+        const name = f.name || "";
+        const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
+        const url = buildDownloadUrl(identifier, name);
+        const localId = name || url || (title + "#" + idx);
+        const id = prefix + "|" + localId;
+        return { id, title, name, url, src: prefix };
+      });
+
+    if (cacheKey){
+      try{
+        localStorage.setItem(cacheAtKey, String(Date.now()));
+        saveAny(cacheKey, list);
+      }catch{}
+    }
+
+    return list;
+  }catch(err){
+    if (hasCache) return cached;
+    throw err;
+  }
+}
     function replaceExtToTxt(name){
       const s = (name || "").toString();
       return s.replace(/\.(m4a|mp3)$/i, ".txt");
@@ -2813,6 +2887,7 @@ function playSegment(start, end){
         render();
         restoreScrollIfNeeded();
         scheduleRefreshCounts(50);
+        
       } else {
         statusEl.textContent = "Yükleniyor...";
       }
@@ -2834,9 +2909,9 @@ function playSegment(start, end){
         const oldUpdated = String(localStorage.getItem(LS.metaUpdated) || "");
 
         if (cacheFresh && newUpdated && oldUpdated && newUpdated === oldUpdated){
-          localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
-          return;
-        }
+  try{ localStorage.setItem(LS.itemsCacheAt, String(Date.now())); }catch{}
+  return;
+}
 
         const files = Array.isArray(j.files) ? j.files : [];
 
@@ -2865,21 +2940,27 @@ function playSegment(start, end){
         const oldFp = itemsFingerprint(items);
         const shouldUpdate = !cacheFresh || (newFp && newFp !== oldFp);
 
-        if (shouldUpdate){
-          items = list;
-          localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
-          localStorage.setItem(LS.itemsCache, JSON.stringify(items));
-          if (newUpdated) localStorage.setItem(LS.metaUpdated, newUpdated);
+       if (shouldUpdate){
+  items = list;
 
-          statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
-          setSortIcons();
-          render();
-          restoreScrollIfNeeded();
-          scheduleRefreshCounts(100);
-        } else {
-          localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
-          if (newUpdated) localStorage.setItem(LS.metaUpdated, newUpdated);
-        }
+  try{
+    localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
+    localStorage.setItem(LS.itemsCache, JSON.stringify(items));
+    if (newUpdated) localStorage.setItem(LS.metaUpdated, newUpdated);
+  }catch{}
+
+  statusEl.textContent = items.length ? "" : "Kayıt bulunamadı.";
+  setSortIcons();
+  render();
+  restoreScrollIfNeeded();
+  scheduleRefreshCounts(100);
+
+} else {
+  try{
+    localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
+    if (newUpdated) localStorage.setItem(LS.metaUpdated, newUpdated);
+  }catch{}
+}
 
         updateSticky(true);
       }catch(err){
@@ -3181,8 +3262,8 @@ function playSegment(start, end){
 
       sortMode = "title";
       dateSortDir = "desc";
-      localStorage.setItem(LS.sortMode, sortMode);
-      localStorage.setItem(LS.sortDirDate, dateSortDir);
+      try{ localStorage.setItem(LS.sortMode, sortMode); }catch{}
+      try{ localStorage.setItem(LS.sortDirDate, dateSortDir); }catch{}
 
       setSortIcons();
       render();
@@ -3471,46 +3552,46 @@ function playSegment(start, end){
     });
     document.getElementById("sidebar").addEventListener("click", (e) => e.stopPropagation());
 
-    sbRefreshBtn.addEventListener("click", async () => {
-      const old = localStorage.getItem(LS.itemsCacheAt) || "0";
-      localStorage.setItem(LS.itemsCacheAt, "0");
-      try{
-        await loadItems();
-      }finally{
-        if (items.length) statusEl.textContent = "";
-        else statusEl.textContent = "Kayıt bulunamadı.";
-        if (old) localStorage.setItem(LS.itemsCacheAt, String(Date.now()));
-      }
-    });
+   sbRefreshBtn.addEventListener("click", async () => {
+  const old = localStorage.getItem(LS.itemsCacheAt) || "0";
+  try{ localStorage.setItem(LS.itemsCacheAt, "0"); }catch{}
+  try{
+    await loadItems();
+  }finally{
+    if (items.length) statusEl.textContent = "";
+    else statusEl.textContent = "Kayıt bulunamadı.";
+    if (old) { try{ localStorage.setItem(LS.itemsCacheAt, String(Date.now())); }catch{} }
+  }
+});
 
-    sbZoomResetBtn.addEventListener("click", () => resetZoom100());
-    sbFavBtn.addEventListener("click", () => { filterFav = !filterFav; setSortIcons(); render(); });
+   sbZoomResetBtn.addEventListener("click", () => resetZoom100());
+sbFavBtn.addEventListener("click", () => { filterFav = !filterFav; setSortIcons(); render(); });
 
-    function clickSort(kind){
-      if (kind === "date"){
-        if (sortMode !== "date") sortMode = "date";
-        else dateSortDir = (dateSortDir === "asc") ? "desc" : "asc";
-        localStorage.setItem(LS.sortMode, sortMode);
-        localStorage.setItem(LS.sortDirDate, dateSortDir);
-      } else if (kind === "dur"){
-        if (sortMode !== "dur") sortMode = "dur";
-        else durSortDir = (durSortDir === "asc") ? "desc" : "asc";
-        localStorage.setItem(LS.sortMode, sortMode);
-        localStorage.setItem(LS.sortDirDur, durSortDir);
-      } else if (kind === "play"){
-        if (sortMode !== "play") sortMode = "play";
-        else playSortDir = (playSortDir === "asc") ? "desc" : "asc";
-        localStorage.setItem(LS.sortMode, sortMode);
-        localStorage.setItem(LS.sortDirPlay, playSortDir);
-      } else if (kind === "download"){
-        if (sortMode !== "download") sortMode = "download";
-        else dlSortDir = (dlSortDir === "asc") ? "desc" : "asc";
-        localStorage.setItem(LS.sortMode, sortMode);
-        localStorage.setItem(LS.sortDirDl, dlSortDir);
-      }
-      setSortIcons();
-      render();
-    }
+function clickSort(kind){
+  if (kind === "date"){
+    if (sortMode !== "date") sortMode = "date";
+    else dateSortDir = (dateSortDir === "asc") ? "desc" : "asc";
+    try{ localStorage.setItem(LS.sortMode, sortMode); }catch{}
+    try{ localStorage.setItem(LS.sortDirDate, dateSortDir); }catch{}
+  } else if (kind === "dur"){
+    if (sortMode !== "dur") sortMode = "dur";
+    else durSortDir = (durSortDir === "asc") ? "desc" : "asc";
+    try{ localStorage.setItem(LS.sortMode, sortMode); }catch{}
+    try{ localStorage.setItem(LS.sortDirDur, durSortDir); }catch{}
+  } else if (kind === "play"){
+    if (sortMode !== "play") sortMode = "play";
+    else playSortDir = (playSortDir === "asc") ? "desc" : "asc";
+    try{ localStorage.setItem(LS.sortMode, sortMode); }catch{}
+    try{ localStorage.setItem(LS.sortDirPlay, playSortDir); }catch{}
+  } else if (kind === "download"){
+    if (sortMode !== "download") sortMode = "download";
+    else dlSortDir = (dlSortDir === "asc") ? "desc" : "asc";
+    try{ localStorage.setItem(LS.sortMode, sortMode); }catch{}
+    try{ localStorage.setItem(LS.sortDirDl, dlSortDir); }catch{}
+  }
+  setSortIcons();
+  render();
+}
 
     sbSortDateBtn.addEventListener("click", () => clickSort("date"));
     sbSortDurBtn.addEventListener("click", () => clickSort("dur"));
