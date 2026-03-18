@@ -1,3 +1,4 @@
+<!-- =========================  ALL-IN-ONE (1/2)  ========================= -->
 <!doctype html>
 <html lang="tr">
 <head>
@@ -965,6 +966,7 @@
     }
     #txResizeHandle svg{ width: 22px; height: 22px; opacity: .88; }
 
+    /* Captions */
     .miniBtn.on{
       border-color: var(--blue);
       background: rgba(43,124,255,.10);
@@ -999,6 +1001,7 @@
     }
     #captions{ pointer-events: auto; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
+    /* cc / CC / CCx buttons */
     .ccModeBtn{
       width: auto;
       min-width: 42px;
@@ -1020,6 +1023,7 @@
     .ccModeBtn.on .btnMark{ color: var(--orange); }
     .ccModeBtn:not(.on) .btnMark{ color: #404040; }
 
+    /* TXT toggle button in player header */
     #fpTxtBtn{
       width: auto;
       min-width: 56px;
@@ -1300,10 +1304,6 @@
 
     const DL_PROXY = "https://fspdownload.protokolfsp.workers.dev/";
     const COUNTER_API = "https://fspdlcounter.protokolfsp.workers.dev";
-    const SRT_INDEX_API = "https://api.github.com/repos/protokolFSP/FSPtranskript/contents/transcripts?ref=main";
-    const SRT_INDEX_TTL_MS = 24 * 60 * 60 * 1000;
-    const SRT_INDEX_LS_KEY = "fsp1.srt.index.v1";
-    const SRT_INDEX_LS_AT  = "fsp1.srt.index.at.v1";
 
     const SRT_BASES = [
       "https://protokolfsp.github.io/FSPtranskript/transcripts/",
@@ -1360,7 +1360,6 @@
 
     const fpTxtBtn   = document.getElementById("fpTxtBtn");
 
-    const captionsDock = document.getElementById("captionsDock");
     const captionsEl = document.getElementById("captions");
 
     const filterFavBtn  = document.getElementById("filterFav");
@@ -2154,7 +2153,7 @@
       return { lines: sliced, activeStart: newActiveStart, activeEnd: newActiveEnd };
     }
 
-    // segment replay support (FIX: segment bitince akış devam etsin)
+    // segment replay support
     let segEndTime = null;
     let segResumeAfter = false;
     let segResumeTime = null;
@@ -2286,7 +2285,6 @@
 
     if (playerEl) playerEl.addEventListener("timeupdate", onCaptionsTimeupdate);
 
-    // captions click => replay
     if (captionsEl){
       captionsEl.addEventListener("click", (e) => {
         if (!isCaptionsOn()) return;
@@ -2678,7 +2676,7 @@
 
     scrollArea.addEventListener("scroll", () => updateSticky(false), { passive: true });
 
-      const durQueue = [];
+    const durQueue = [];
     const durLoading = new Set();
     let durActive = 0;
     const DUR_CONCURRENCY = 2;
@@ -2793,62 +2791,6 @@
     function buildDownloadUrl(identifier, name){
       const parts = (name || "").split("/").map(p => encodeURIComponent(p));
       return `https://archive.org/download/${identifier}/${parts.join("/")}`;
-    }
-
-    async function loadSource(identifier, prefix, opts){
-      const cacheKey   = opts?.cacheKey   || "";
-      const cacheAtKey = opts?.cacheAtKey || "";
-      const ttlMs      = Number(opts?.ttlMs || 0);
-      const never      = !!opts?.neverChanges;
-
-      const cached = cacheKey ? loadAny(cacheKey) : null;
-      const hasCache = Array.isArray(cached) && cached.length > 0;
-
-      const at = cacheAtKey ? Number(safeLS.getItem(cacheAtKey) || "0") : 0;
-      const atOk = Number.isFinite(at) ? at : 0;
-
-      const isFresh = never ? hasCache : (hasCache && ttlMs > 0 && (Date.now() - atOk) < ttlMs);
-
-      if (!FORCE_REFRESH && isFresh){
-        return cached;
-      }
-
-      try{
-        const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}?v=${Date.now()}`;
-        const res = await fetch(metaUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("IA metadata okunamadı: " + identifier);
-
-        const j = await res.json();
-        const files = Array.isArray(j.files) ? j.files : [];
-
-        const list = files
-          .filter(f => {
-            const name = (f.name || "").toLowerCase();
-            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
-            if (!("source" in f)) return true;
-            return (String(f.source).toLowerCase() === "original");
-          })
-          .map((f, idx) => {
-            const name = f.name || "";
-            const title = (f.title || "").trim() || decodeURIComponentSafe(name.split("/").pop() || name);
-            const url = buildDownloadUrl(identifier, name);
-            const localId = name || url || (title + "#" + idx);
-            const id = prefix + "|" + localId;
-            return { id, title, name, url, src: prefix };
-          });
-
-        if (cacheKey){
-          try{
-            safeLS.setItem(cacheAtKey, String(Date.now()));
-            saveAny(cacheKey, list);
-          }catch{}
-        }
-
-        return list;
-      }catch(err){
-        if (hasCache) return cached;
-        throw err;
-      }
     }
 
     function replaceExtToTxt(name){
@@ -4096,8 +4038,13 @@
     txResizeHandle.addEventListener("pointerup", (e) => endTxResize(e.pointerId));
     txResizeHandle.addEventListener("pointercancel", (e) => endTxResize(e.pointerId));
 
+    /* =========================  ALL-IN-ONE (2/2) DEVAM  ========================= */
+    <!-- =========================  ALL-IN-ONE (2/2)  ========================= -->
     /* =========================================================
-       FSPneu (S2) + FSPab26 transcripts + şehir/eyalet önek filtresi
+       MERGED SOURCES:
+       - S1: (IA_IDENTIFIER_1) mevcut
+       - S2: FSPneu (m4a only) + FSPab26 transcripts + prefix block
+       - S3: FSP21_23 (m4a+mp3) + FSP21_23 transcripts
        ========================================================= */
 
     const IA_IDENTIFIER_2 = "FSPneu";
@@ -4112,18 +4059,25 @@
       "Hessen"
     ];
 
-    function __ia2EnsureSlashEnd(s){
+    const IA_IDENTIFIER_3 = "FSP21_23";
+    const IA3_SRC = "S3";
+    const IA3_TX_SUBDIR = "FSP21_23";
+
+    function __ensureSlashEnd(s){
       s = String(s || "");
       return s.endsWith("/") ? s : (s + "/");
     }
 
-    function __ia2BasesWithSubdir(bases, subdir){
+    function __basesWithSubdir(bases, subdir){
       const sd = String(subdir || "").replace(/^\/+|\/+$/g, "");
-      return (bases || []).map(b => __ia2EnsureSlashEnd(b) + sd + "/");
+      return (bases || []).map(b => __ensureSlashEnd(b) + sd + "/");
     }
 
-    const __IA2_SRT_BASES = __ia2BasesWithSubdir(SRT_BASES, IA2_TX_SUBDIR);
-    const __IA2_TXT_BASES = __ia2BasesWithSubdir(TXT_BASES, IA2_TX_SUBDIR);
+    const __IA2_SRT_BASES = __basesWithSubdir(SRT_BASES, IA2_TX_SUBDIR);
+    const __IA2_TXT_BASES = __basesWithSubdir(TXT_BASES, IA2_TX_SUBDIR);
+
+    const __IA3_SRT_BASES = __basesWithSubdir(SRT_BASES, IA3_TX_SUBDIR);
+    const __IA3_TXT_BASES = __basesWithSubdir(TXT_BASES, IA3_TX_SUBDIR);
 
     function __ia2IsBlockedByPrefix(fileName){
       let base = (fileName || "").toString();
@@ -4144,31 +4098,40 @@
       return false;
     }
 
-    function __ia2MakeItemsFromFiles(files){
+    function __makeItemsFromFiles(files, identifier, srcTag, opts = {}){
+      const onlyM4A = !!opts.onlyM4A;
+      const blockFn = typeof opts.blockFn === "function" ? opts.blockFn : null;
+      const txtBases0 = opts.txtBases0 || TXT_BASES[0];
+
       return (files || [])
         .filter(f => typeof f?.name === "string")
         .filter(f => {
           const name = String(f.name).toLowerCase();
-          if (!name.endsWith(".m4a")) return false;
+          if (onlyM4A){
+            if (!name.endsWith(".m4a")) return false;
+          } else {
+            if (!(name.endsWith(".m4a") || name.endsWith(".mp3"))) return false;
+          }
           if (!("source" in f)) return true;
           return String(f.source || "").toLowerCase() === "original";
         })
-        .filter(f => !__ia2IsBlockedByPrefix(f.name))
+        .filter(f => !blockFn || !blockFn(f.name))
         .map((f, idx) => {
           const name = f.name || "";
           const title = (String(f.title || "").trim()) || decodeURIComponentSafe(name.split("/").pop() || name);
-          const url = buildDownloadUrl(IA_IDENTIFIER_2, name);
+          const url = buildDownloadUrl(identifier, name);
           const localId = name || url || (title + "#" + idx);
-          const id = IA2_SRC + "|" + localId;
+          const id = srcTag + "|" + localId;
 
           const txtCandidates = buildTxtNameCandidates({ name });
           const txtName = (txtCandidates && txtCandidates.length) ? txtCandidates[0] : replaceExtToTxt(name);
-          const txtUrl = txtName ? (__IA2_TXT_BASES[0] + encodeURIComponent(txtName)) : "";
+          const txtUrl = txtName ? (txtBases0 + encodeURIComponent(txtName)) : "";
 
-          return { id, title, name, url, src: IA2_SRC, txtName, txtUrl };
+          return { id, title, name, url, src: srcTag, txtName, txtUrl };
         });
     }
 
+    // Override SRT/TXT url builders for S2 & S3
     const __orig_buildSrtUrlsForItem = buildSrtUrlsForItem;
     buildSrtUrlsForItem = async function(it){
       if (it && it.src === IA2_SRC){
@@ -4176,6 +4139,16 @@
         const urls = [];
         for (const name of names){
           for (const base of __IA2_SRT_BASES){
+            urls.push(base + encodeURIComponent(name));
+          }
+        }
+        return { urls, triedNames: names };
+      }
+      if (it && it.src === IA3_SRC){
+        const names = buildSrtNameCandidates(it);
+        const urls = [];
+        for (const name of names){
+          for (const base of __IA3_SRT_BASES){
             urls.push(base + encodeURIComponent(name));
           }
         }
@@ -4196,21 +4169,31 @@
         }
         return { urls, triedNames: names };
       }
+      if (it && it.src === IA3_SRC){
+        const names = buildTxtNameCandidates(it);
+        const urls = [];
+        for (const name of names){
+          for (const base of __IA3_TXT_BASES){
+            urls.push(base + encodeURIComponent(name));
+          }
+        }
+        return { urls, triedNames: names };
+      }
       return __orig_buildTxtUrlsForItem(it);
     };
 
-    async function __ia2MergeFspneuIntoItems(){
-      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(IA_IDENTIFIER_2)}`;
+    async function __mergeIdentifierIntoItems(identifier, srcTag, makeOpts){
+      const metaUrl = `https://archive.org/metadata/${encodeURIComponent(identifier)}`;
       const res = await fetch(metaUrl, { cache: FORCE_REFRESH ? "no-store" : "no-cache" });
-      if (!res.ok) throw new Error("FSPneu metadata okunamadı: " + res.status);
+      if (!res.ok) throw new Error(identifier + " metadata okunamadı: " + res.status);
 
       const j = await res.json();
       const files = Array.isArray(j.files) ? j.files : [];
 
-      const s2List = __ia2MakeItemsFromFiles(files);
+      const list = __makeItemsFromFiles(files, identifier, srcTag, makeOpts);
 
-      const keep = items.filter(it => it?.src !== IA2_SRC);
-      items = keep.concat(s2List);
+      const keep = items.filter(it => it?.src !== srcTag);
+      items = keep.concat(list);
 
       try{
         safeLS.setItem(LS.itemsCacheAt, String(Date.now()));
@@ -4223,10 +4206,27 @@
       scheduleRefreshCounts(100);
     }
 
+    async function __mergeS2(){
+      return __mergeIdentifierIntoItems(
+        IA_IDENTIFIER_2,
+        IA2_SRC,
+        { onlyM4A: true, blockFn: __ia2IsBlockedByPrefix, txtBases0: __IA2_TXT_BASES[0] }
+      );
+    }
+
+    async function __mergeS3(){
+      return __mergeIdentifierIntoItems(
+        IA_IDENTIFIER_3,
+        IA3_SRC,
+        { onlyM4A: false, blockFn: null, txtBases0: __IA3_TXT_BASES[0] }
+      );
+    }
+
     const __orig_loadItems = loadItems;
     loadItems = async function(){
       await __orig_loadItems();
-      try{ await __ia2MergeFspneuIntoItems(); }catch(e){ console.warn(e); }
+      try{ await __mergeS2(); }catch(e){ console.warn(e); }
+      try{ await __mergeS3(); }catch(e){ console.warn(e); }
     };
 
     // Init
