@@ -1157,6 +1157,7 @@
     </div>
   </div>
 
+  <!-- Sidebar -->
   <div id="sbOverlay" aria-hidden="true">
     <div id="sidebar" role="dialog" aria-label="Menü">
       <div id="sbHeader">
@@ -1242,7 +1243,7 @@
     </div>
   </div>
 
- 
+  <!-- Transcript popup -->
   <div id="txPanel" role="dialog" aria-label="Transkript" aria-hidden="true">
     <div id="txHeader">
       <div id="txTitle">Transkript</div>
@@ -3468,25 +3469,15 @@
     function closeSidebar(){
       sbOverlay.classList.remove("open");
       sbOverlay.setAttribute("aria-hidden", "true");
-sidebarOpenBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  openSidebar();
-});
+    }
+    sidebarOpenBtn.addEventListener("click", (e) => { e.stopPropagation(); openSidebar(); });
+    sbCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); closeSidebar(); });
+    sbOverlay.addEventListener("click", (e) => {
+      if (e.target === sbOverlay) closeSidebar();
+    });
+    document.getElementById("sidebar").addEventListener("click", (e) => e.stopPropagation());
 
-sbCloseBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  closeSidebar();
-});
-
-sbOverlay.addEventListener("click", (e) => {
-  if (e.target === sbOverlay) closeSidebar();
-});
-
-const sidebarEl = document.getElementById("sidebar");
-if (sidebarEl) {
-  sidebarEl.addEventListener("click", (e) => e.stopPropagation());
-}
-
+    sbRefreshBtn.addEventListener("click", async () => {
       const old = safeLS.getItem(LS.itemsCacheAt) || "0";
       try{ safeLS.setItem(LS.itemsCacheAt, "0"); }catch{}
       try{
@@ -4046,13 +4037,13 @@ if (sidebarEl) {
     txResizeHandle.addEventListener("pointerup", (e) => endTxResize(e.pointerId));
     txResizeHandle.addEventListener("pointercancel", (e) => endTxResize(e.pointerId));
 
-    /* =========================  ALL-IN-ONE (2/2) DEVAM  ========================= */
-/* =========================================================
-   MERGED SOURCES:
-   - S1: (IA_IDENTIFIER_1) mevcut
-   - S2: FSPneu (m4a only) + FSPab26 transcripts + prefix block
-   - S3: FSP21_23 (m4a+mp3) + FSP21_23 transcripts
-   ========================================================= */
+    
+    /* =========================================================
+       MERGED SOURCES:
+       - S1: (IA_IDENTIFIER_1) mevcut
+       - S2: FSPneu (m4a only) + FSPab26 transcripts + prefix block
+       - S3: FSP21_23 (m4a+mp3) + FSP21_23 transcripts
+       ========================================================= */
 
     const IA_IDENTIFIER_2 = "FSPneu";
     const IA2_SRC = "S2";
